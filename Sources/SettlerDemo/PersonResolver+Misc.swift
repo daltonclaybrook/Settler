@@ -2,31 +2,30 @@ import SettlerKit
 
 extension PersonResolver {
     func resolveSteve(
-        birthdate: Resolved<Key.DaltonBirthdate>,
-        address: Resolved<Key.DaltonAddress>,
-        company: Resolved<Key.DaltonCompany>,
-        pet: Resolved<Key.Rufus>
-    ) -> Resolved<Key.Steve> {
-        let steve = Person(
+        birthdate: Key.DaltonBirthdate,
+        address: Key.DaltonAddress,
+        company: Key.DaltonCompany,
+        pet: Key.Rufus
+    ) -> Key.Steve {
+        Person(
             name: "Steve",
-            birthdate: birthdate.value,
-            address: address.value,
-            company: company.value,
-            pets: [pet.value],
+            birthdate: birthdate,
+            address: address,
+            company: company,
+            pets: [pet],
             parents: []
         )
-        return Resolved(steve)
     }
 
-    func resolveDaltonParents(steve: Resolved<Key.Steve>) -> Resolved<Key.DaltonParents> {
-        Resolved([steve.value])
+    func resolveDaltonParents(steve: Key.Steve) -> Key.DaltonParents {
+        [steve]
     }
 
-    func resolveRufus() -> Resolved<Key.Rufus> {
-        Resolved(Pet(name: "Rufus", age: 2, species: .dog))
+    func resolveRufus() -> Key.Rufus {
+        Pet(name: "Rufus", age: 2, species: .dog)
     }
 
-    func resolveWhiskers() -> Resolved<Key.Whiskers> {
-        Resolved(Pet(name: "Whiskers", age: 3, species: .cat))
+    func resolveWhiskers() -> Key.Whiskers {
+        Pet(name: "Whiskers", age: 3, species: .cat)
     }
 }

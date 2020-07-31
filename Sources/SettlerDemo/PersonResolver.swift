@@ -22,47 +22,47 @@ struct PersonResolver: Resolver {
 
 extension PersonResolver {
     func resolveDalton(
-        birthdate: Resolved<Key.DaltonBirthdate>,
-        address: Resolved<Key.DaltonAddress>,
-        company: Resolved<Key.DaltonCompany>,
-        rufus: Resolved<Key.Rufus>,
-        whiskers: Resolved<Key.Whiskers>,
-        parents: Resolved<Key.DaltonParents>
-    ) -> Resolved<Key.Dalton> {
-        Resolved(Person(
+        birthdate: Key.DaltonBirthdate,
+        address: Key.DaltonAddress,
+        company: Key.DaltonCompany,
+        rufus: Key.Rufus,
+        whiskers: Key.Whiskers,
+        parents: Key.DaltonParents
+    ) -> Key.Dalton {
+        Person(
             name: "Dalton",
-            birthdate: birthdate.value,
-            address: address.value,
-            company: company.value,
-            pets: [rufus.value, whiskers.value],
-            parents: parents.value
-        ))
+            birthdate: birthdate,
+            address: address,
+            company: company,
+            pets: [rufus, whiskers],
+            parents: parents
+        )
     }
 
-    func resolveDaltonBirthdate() throws -> Resolved<Key.DaltonBirthdate> {
+    func resolveDaltonBirthdate() throws -> Key.DaltonBirthdate {
         let components = DateComponents(year: 1989, month: 9, day: 25)
         if let birthdate = Calendar.current.date(from: components) {
-            return Resolved(birthdate)
+            return birthdate
         } else {
             throw ResolverError.dateError
         }
     }
 
-    func resolveDaltonAddress() -> Resolved<Key.DaltonAddress> {
-        Resolved(Address(
+    func resolveDaltonAddress() -> Key.DaltonAddress {
+        Address(
             line1: "123 Awesome St",
             line2: nil,
             city: "New York",
             state: "NY",
             zipCode: "10001"
-        ))
+        )
     }
 
-    func resolveDaltonCompany(address: Resolved<Key.DaltonAddress>) -> Resolved<Key.DaltonCompany> {
-        Resolved(Company(
+    func resolveDaltonCompany(address: Key.DaltonAddress) -> Key.DaltonCompany {
+        Company(
             name: "Peloton",
-            address: address.value,
+            address: address,
             industry: .software
-        ))
+        )
     }
 }

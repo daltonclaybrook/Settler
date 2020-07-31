@@ -11,7 +11,7 @@ let package = Package(
         .library(name: "SettlerKit", targets: ["SettlerKit"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.2.0"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.2.1"),
         .package(url: "https://github.com/jpsim/SourceKitten.git", from: "0.29.0"),
     ],
     targets: [

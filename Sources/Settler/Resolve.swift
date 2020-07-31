@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import SourceKittenFramework
 
 struct Resolve: ParsableCommand {
     static let configuration = CommandConfiguration(
@@ -23,6 +24,24 @@ struct Resolve: ParsableCommand {
     }
 
     func run() throws {
+        let path = sourcesPath.bridge().absolutePathRepresentation()
+        guard let enumerator = FileManager.default.enumerator(atPath: path) else {
+            throw SettlerError.internalError
+        }
 
+        try enumerator.forEach { fileName in
+            guard let fileName = fileName as? String,
+                fileName.hasSuffix(".swift") else { return }
+            let filePath = path.bridge().appendingPathComponent(fileName)
+            try processFile(path: filePath)
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func processFile(path: String) throws {
+        guard let file = File(path: path) else { return }
+        let structure = try Structure(file: file)
+        structure.dictionary.forEach { key,  }
     }
 }
