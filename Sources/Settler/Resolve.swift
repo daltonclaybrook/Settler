@@ -42,6 +42,6 @@ struct Resolve: ParsableCommand {
     private func processFile(path: String) throws {
         guard let file = File(path: path) else { return }
         let structure = try Structure(file: file)
-        structure.dictionary.forEach { key,  }
+        print(structure)
     }
 }
