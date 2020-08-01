@@ -27,8 +27,8 @@
 ///
 /// The other requirement of a Resolver is the `Output` type. This is the final type produced by
 /// your Resolver. It should take the form of a type-alias of one of the keys in your `Key` namespace.
-/// This type may depend on some or all of the other dependencies listed in the namespace. Given
-/// the above example for `Key`, the `Output` type-alias might be:
+/// More than likely, this is a complex object requiring many (if not all) of the other dependencies listed
+/// in the `Key` namespace. Given the above example for `Key`, the `Output` type-alias might be:
 /// ```
 /// typealias Output = Key.MusicPlayer
 /// ```
@@ -59,9 +59,28 @@
 /// * You can name them however you like! There are no naming requirements (e.g. they don't need to be prefixed with "resolve").
 /// * They must not be `private`. If all resolver functions have an access control level of `public`,
 /// the final output resolver function will be `public`. Otherwise, it will be internal.
-/// * They can `throw`, but if any resolver function `throws`, the final output resolver function will
-/// `throw` as well.
+/// * They can `throw`, but if any single resolver function `throws`, the final output resolver function
+/// will `throw` as well.
+/// * Your Resolver type may contain generated and/or stored properties, custom initializers, and a
+/// deinitializer (`deinit`), but it must not contain any functions that are not resolver functions. These
+/// will cause a build failure.
 ///
+/// So, you've implemented all of your resolver functions and you have no more compiler errors. All
+/// that's left to do is obtain the `Output` object from your final resolver function. Assuming your project
+/// is properly configured (see the docs on configuration), when you build your app, a new file will be
+/// generated in the same directory as your Resolver declaration called
+/// `[YourResolver]+Output.swift`. Add this file to your app target in Xcode. This generated
+/// file contains an extension on your Resolver with a single function:
+/// ```
+/// func resolve() -> Output {
+///     // ...
+/// }
+/// ```
+/// (Depending on whether any of your resolver functions are `throwing` functions, this function may
+/// also be `throwing`)
+///
+/// All that's left to do is instantiate your Resolver, call the `resolve()` function, and make use of your
+/// final resolved object. Rest assured, if any dependency is missing (or duplicated), Settler will find it.
 public protocol Resolver {
     associatedtype Key
     associatedtype Output
