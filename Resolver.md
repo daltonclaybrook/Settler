@@ -69,8 +69,7 @@ as long as those extensions are included in the Settler `sources` directory.
 * The return type and every argument type must be under the `Key` namespace.
 * You can name the functions however you like! There are no naming requirements (e.g. they
 don't need to be prefixed with "resolve").
-* They must not be `private`. If all resolver functions have an access control level of `public`,
-the final output resolver function will be `public`. Otherwise, it will be `internal`.
+* They can have an access control level of `internal` or `public`, but not `private`.
 * They can `throw`, but if any single resolver function `throws`, the final output resolver function
 will `throw` as well.
 * Your Resolver type may contain generated and/or stored properties, custom initializers, and a
