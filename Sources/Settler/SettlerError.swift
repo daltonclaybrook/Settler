@@ -1,12 +1,15 @@
 enum SettlerError: Error {
-    case internalError
+    case unknownError
+    case failedToOpenFile(String)
 }
 
 extension SettlerError: CustomStringConvertible {
     var description: String {
         switch self {
-        case .internalError:
-            return "An internal error occurred"
+        case .unknownError:
+            return "An unknown error occurred"
+        case .failedToOpenFile(let file):
+            return "Failed to open file: \(file)"
         }
     }
 }
