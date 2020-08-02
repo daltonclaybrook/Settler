@@ -3,8 +3,7 @@ import Foundation
 import SourceKittenFramework
 
 struct Resolve: ParsableCommand {
-    private typealias TypeName = String
-    private typealias TypeNameChain = [TypeName]
+    private typealias StructuresAndFile = (structures: [[String: SourceKitRepresentable]], file: File)
 
     static let configuration = CommandConfiguration(
         abstract: "Parse any Resolvers in the target project and generate type-safe functions for producing the desired Resolver outputs"
@@ -15,7 +14,6 @@ struct Resolve: ParsableCommand {
     var sourcesPath: String = "."
 
     private static let typeKinds: Set<SwiftDeclarationKind> = [.class, .struct, .enum, .extension]
-    private static let protocolTypeName = "Resolver"
 
     func validate() throws {
         let fullSourcesPath = sourcesPath.bridge().absolutePathRepresentation()
@@ -45,56 +43,84 @@ struct Resolve: ParsableCommand {
          - Generate the `[Resolver]+Output.swift` files for each Resolver and save them to disk
         */
 
+        // Determine absolute paths of all Swift files
         let swiftFiles = enumerator
             .compactMap { fileName -> String? in
                 guard let fileName = fileName as? String,
+                    // TODO: fix this
                     fileName.hasSuffix("PersonResolver.swift") else { return nil }
                 return path.bridge().appendingPathComponent(fileName)
             }
 
-        let resolverTypeChains = try swiftFiles
+        // Determine all of the Resolver definitions from parsing every source file
+        var definitions = try swiftFiles
             .reduce(into: [TypeNameChain]()) { result, swiftFile in
-                guard let file = File(path: swiftFile) else {
-                    throw SettlerError.failedToOpenFile(swiftFile)
-                }
-                let structure = try Structure(file: file)
-                guard let substructures = structure.dictionary[SwiftDocKey.substructure.rawValue] as? [[String: SourceKitRepresentable]]
-                    else { return }
+                guard let parsed = try getSubstructuresAndFileFor(swiftFile: swiftFile) else { return }
 
-                substructures.forEach { substructure in
+                parsed.structures.forEach { substructure in
                     storeTypeNameChainsImplementingResolver(in: &result, structure: substructure)
                 }
             }
+            .map { ResolverDefinition(typeChain: $0) }
 
-        print(resolverTypeChains)
+        // Update the definitions with the relevant structures
+        try swiftFiles.forEach { swiftFile in
+            guard let parsed = try getSubstructuresAndFileFor(swiftFile: swiftFile) else { return }
+            definitions.mutableForEach { definition in
+                let structuresForDefinition = findSubstructureFor(typeChain: definition.typeChain, in: parsed.structures)
+                definition.update(with: structuresForDefinition, file: parsed.file)
+            }
+        }
     }
 
     // MARK: - Helpers
 
+    private func getSubstructuresAndFileFor(swiftFile: String) throws -> StructuresAndFile? {
+        guard let file = File(path: swiftFile) else {
+            throw SettlerError.failedToOpenFile(swiftFile)
+        }
+        let structure = try Structure(file: file)
+        return structure.dictionary.substructure.map { ($0, file) }
+    }
+
     private func storeTypeNameChainsImplementingResolver(in typeChains: inout [TypeNameChain], structure: [String: SourceKitRepresentable], currentNamespaces: TypeNameChain = []) {
-        guard let typeName = structure[SwiftDocKey.name.rawValue] as? String,
-            let kindString = structure[SwiftDocKey.kind.rawValue] as? String,
-            let kind = SwiftDeclarationKind(rawValue: kindString),
+        guard let typeName = structure.name,
+            let kind = structure.declarationKind,
             Resolve.typeKinds.contains(kind)
             else { return }
 
         let namespacesAndType = currentNamespaces + [typeName]
-        let inheritedTypes = structure[SwiftDocKey.inheritedtypes.rawValue] as? [[String: SourceKitRepresentable]] ?? []
-        let inheritedTypeNames = inheritedTypes.compactMap { type in
-            type[SwiftDocKey.name.rawValue] as? String
-        }
-        if inheritedTypeNames.contains(Resolve.protocolTypeName) {
+        let inheritedTypeNames = structure.inheritedTypes?
+            .compactMap { possibleType in
+                (possibleType as? [String: SourceKitRepresentable])?.name
+            } ?? []
+        if inheritedTypeNames.contains(TypeNameConstants.resolver) {
             typeChains.append(namespacesAndType)
         }
 
         // Recurse into substructures and add any deeper types that implement Resolver
-        let substructures = structure[SwiftDocKey.substructure.rawValue] as? [[String: SourceKitRepresentable]] ?? []
-        substructures.forEach { substructure in
+        structure.substructure?.forEach { substructure in
             storeTypeNameChainsImplementingResolver(
                 in: &typeChains,
                 structure: substructure,
                 currentNamespaces: namespacesAndType
             )
+        }
+    }
+
+    /// Find all substructures for the given type chain
+    private func findSubstructureFor(typeChain: TypeNameChain, in structures: [[String: SourceKitRepresentable]]) -> [[String: SourceKitRepresentable]] {
+        var typeChain = typeChain
+        guard !typeChain.isEmpty else { return [] }
+        let firstType = typeChain.removeFirst()
+
+        let structuresForType = structures.filter { structure in
+            structure.name == firstType
+        }
+        if typeChain.isEmpty {
+            return structuresForType
+        } else {
+            return findSubstructureFor(typeChain: typeChain, in: structuresForType)
         }
     }
 }
