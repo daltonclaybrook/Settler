@@ -5,6 +5,7 @@ struct DefinitionError: Error {
         case keyIsNotAnEnum
         case keyMemberIsNotATypeAlias
         case invalidTypeAlias
+        case outputIsNotATypeAlias
     }
 
     let kind: Kind
@@ -27,9 +28,9 @@ extension DefinitionError: CustomStringConvertible {
     var description: String {
         // Xcode likes warnings and errors in the following format:
         // {full_path_to_file}{:line}{:character}: {error,warning}: {content}
-        let fileString: String = filePath ?? "<nopath>"
-        let lineString: String = ":\(line)"
-        let charString: String = ":\(character)"
+        let fileString = filePath ?? "<nopath>"
+        let lineString = ":\(line)"
+        let charString = ":\(character)"
         let errorString = ": error"
         let contentString = ": \(kind.description)"
         return [fileString, lineString, charString, errorString, contentString].joined()
@@ -42,9 +43,11 @@ extension DefinitionError.Kind: CustomStringConvertible {
         case .keyIsNotAnEnum:
             return "The Key type must be an enum"
         case .keyMemberIsNotATypeAlias:
-            return "Key must only contain type-aliases. No other types are permitted."
+            return "Key must only contain type-aliases. No other members are permitted."
         case .invalidTypeAlias:
             return "The type-alias is invalid. See the docs."
+        case .outputIsNotATypeAlias:
+            return "Output must by a type-alias"
         }
     }
 }

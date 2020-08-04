@@ -10,13 +10,13 @@ enum TypeNameConstants {
     static let output = "Output"
 }
 
+struct TypeAliasDefinition {
+    let name: TypeName
+    let existingType: TypeName
+}
+
 struct KeyDefinition {
-    struct Key {
-        let name: TypeName
-        // Do we need to even record the data type?
-        let dataType: TypeName
-    }
-    let keys: [Key]
+    let typeAliases: [TypeAliasDefinition]
 }
 
 struct ResolverFunction {
@@ -28,7 +28,7 @@ struct ResolverDefinition {
     let typeChain: TypeNameChain
     var declarationFilePath: String? = nil
     var keyDefinition: KeyDefinition? = nil
-    var outputType: TypeName? = nil
+    var outputDefinition: TypeAliasDefinition? = nil
     var functions: [ResolverFunction] = []
     var errors: [DefinitionError] = []
 }
@@ -64,46 +64,90 @@ extension ResolverDefinition {
             return
         }
 
-        let typeAliases = structure.substructure ?? []
-        let keyResults = typeAliases.map { alias -> Result<KeyDefinition.Key, DefinitionError> in
-            guard let kind = alias.declarationKind, kind == .typealias else {
-                let error = DefinitionError(kind: .keyMemberIsNotATypeAlias, file: file, offset: alias.offset)
-                return .failure(error)
-            }
-
-            guard let offset = alias.offset,
-                let nameOffset = alias.nameOffset,
-                let length = alias.length,
-                let nameLength = alias.nameLength,
-                let name = alias.name else {
-                    let error = DefinitionError(kind: .invalidTypeAlias, file: file, offset: alias.offset)
-                    return .failure(error)
-            }
-
-            let offsetAfterName = nameOffset + nameLength
-            let lengthAfterName = offset + length - offsetAfterName
-            let byteRange = ByteRange(location: ByteCount(offsetAfterName), length: ByteCount(lengthAfterName))
-            let afterName = file.stringView.substringWithByteRange(byteRange) ?? ""
-
-            let whitespaceAndEqual = CharacterSet.whitespaces.union(CharacterSet(charactersIn: "="))
-            let dataType = afterName.trimmingCharacters(in: whitespaceAndEqual)
-            guard !dataType.isEmpty else {
-                let error = DefinitionError(kind: .invalidTypeAlias, file: file, offset: offset)
-                return .failure(error)
-            }
-
-            return .success(KeyDefinition.Key(name: name, dataType: dataType))
+        let aliasStructures = structure.substructure ?? []
+        let typeAliasResults = aliasStructures.map { structure in
+            TypeAliasDefinition.build(from: structure, in: file)
+                .mapError { error in
+                    DefinitionError(kind: error.keyMemberErrorKind, file: file, offset: structure.offset)
+                }
         }
 
-        keyDefinition = KeyDefinition(keys: keyResults.compactMap(\.successValue))
-        errors.append(contentsOf: keyResults.compactMap(\.failureError))
+        keyDefinition = KeyDefinition(typeAliases: typeAliasResults.compactMap(\.successValue))
+        errors.append(contentsOf: typeAliasResults.compactMap(\.failureError))
     }
 
     private mutating func updateOutput(kind: SwiftDeclarationKind, structure: [String: SourceKitRepresentable], file: File) {
+        guard kind == .typealias else {
+            errors.append(DefinitionError(kind: .outputIsNotATypeAlias, file: file, offset: structure.offset))
+            return
+        }
 
+        switch TypeAliasDefinition.build(from: structure, in: file) {
+        case .success(let definition):
+            outputDefinition = definition
+        case .failure(let error):
+            errors.append(DefinitionError(kind: error.outputErrorKind, file: file, offset: structure.offset))
+        }
     }
 
     private mutating func updateFunctions(name: String, structure: [String: SourceKitRepresentable], file: File) {
 
+    }
+}
+
+extension TypeAliasDefinition {
+    enum TypeAliasError: Error {
+        case notATypeAlias
+        case missingRequiredFields
+        case invalidExistingType
+    }
+
+    static func build(from structure: [String: SourceKitRepresentable], in file: File) -> Result<Self, TypeAliasError> {
+        guard let kind = structure.declarationKind, kind == .typealias else {
+            return .failure(.notATypeAlias)
+        }
+
+        guard let offset = structure.offset,
+            let nameOffset = structure.nameOffset,
+            let length = structure.length,
+            let nameLength = structure.nameLength,
+            let name = structure.name else {
+                return .failure(.missingRequiredFields)
+        }
+
+        let offsetAfterName = nameOffset + nameLength
+        let lengthAfterName = offset + length - offsetAfterName
+        let byteRange = ByteRange(location: ByteCount(offsetAfterName), length: ByteCount(lengthAfterName))
+        let afterName = file.stringView.substringWithByteRange(byteRange) ?? ""
+
+        let whitespaceAndEqual = CharacterSet.whitespaces.union(CharacterSet(charactersIn: "="))
+        let existingType = afterName.trimmingCharacters(in: whitespaceAndEqual)
+        guard !existingType.isEmpty else {
+            return .failure(.invalidExistingType)
+        }
+
+        return .success(TypeAliasDefinition(name: name, existingType: existingType))
+    }
+}
+
+extension TypeAliasDefinition.TypeAliasError {
+    /// The error kind when this error occurs inside of the Key definition
+    var keyMemberErrorKind: DefinitionError.Kind {
+        switch self {
+        case .notATypeAlias:
+            return .keyMemberIsNotATypeAlias
+        case .missingRequiredFields, .invalidExistingType:
+            return .invalidTypeAlias
+        }
+    }
+
+    /// The error kind when this error occurs on the Output definition
+    var outputErrorKind: DefinitionError.Kind {
+        switch self {
+        case .notATypeAlias:
+            return .outputIsNotATypeAlias
+        case .missingRequiredFields, .invalidExistingType:
+            return .invalidTypeAlias
+        }
     }
 }
