@@ -13,6 +13,7 @@ enum TypeNameConstants {
 struct KeyDefinition {
     struct Key {
         let name: TypeName
+        // Do we need to even record the data type?
         let dataType: TypeName
     }
     let keys: [Key]
@@ -42,15 +43,15 @@ extension ResolverDefinition {
     mutating func update(with structure: [String: SourceKitRepresentable], file: File) {
         let members = structure.substructure ?? []
         members.forEach { member in
-            guard let name = structure.name,
-                let kind = structure.declarationKind else { return }
+            guard let name = member.name,
+                let kind = member.declarationKind else { return }
 
             if name == TypeNameConstants.key {
-                updateKey(kind: kind, structure: structure, file: file)
+                updateKey(kind: kind, structure: member, file: file)
             } else if name == TypeNameConstants.output {
-                updateOutput(kind: kind, structure: structure, file: file)
+                updateOutput(kind: kind, structure: member, file: file)
             } else if kind == .functionMethodInstance {
-                updateFunctions(name: name, structure: structure, file: file)
+                updateFunctions(name: name, structure: member, file: file)
             }
         }
     }
