@@ -25,4 +25,12 @@ extension Dictionary where Key == String, Value == SourceKitRepresentable {
     var nameOffset: Int64? {
         self[SwiftDocKey.nameOffset.rawValue] as? Int64
     }
+
+    var length: Int64? {
+        self[SwiftDocKey.length.rawValue] as? Int64
+    }
+
+    var nameLength: Int64? {
+        self[SwiftDocKey.nameLength.rawValue] as? Int64
+    }
 }

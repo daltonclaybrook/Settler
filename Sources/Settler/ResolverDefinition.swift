@@ -1,3 +1,4 @@
+import Foundation
 import SourceKittenFramework
 
 typealias TypeName = String
@@ -11,7 +12,7 @@ enum TypeNameConstants {
 
 struct KeyDefinition {
     struct Key {
-        let alias: TypeName
+        let name: TypeName
         let dataType: TypeName
     }
     let keys: [Key]
@@ -63,7 +64,38 @@ extension ResolverDefinition {
         }
 
         let typeAliases = structure.substructure ?? []
+        let keyResults = typeAliases.map { alias -> Result<KeyDefinition.Key, DefinitionError> in
+            guard let kind = alias.declarationKind, kind == .typealias else {
+                let error = DefinitionError(kind: .keyMemberIsNotATypeAlias, file: file, offset: alias.offset)
+                return .failure(error)
+            }
 
+            guard let offset = alias.offset,
+                let nameOffset = alias.nameOffset,
+                let length = alias.length,
+                let nameLength = alias.nameLength,
+                let name = alias.name else {
+                    let error = DefinitionError(kind: .invalidTypeAlias, file: file, offset: alias.offset)
+                    return .failure(error)
+            }
+
+            let offsetAfterName = nameOffset + nameLength
+            let lengthAfterName = offset + length - offsetAfterName
+            let byteRange = ByteRange(location: ByteCount(offsetAfterName), length: ByteCount(lengthAfterName))
+            let afterName = file.stringView.substringWithByteRange(byteRange) ?? ""
+
+            let whitespaceAndEqual = CharacterSet.whitespaces.union(CharacterSet(charactersIn: "="))
+            let dataType = afterName.trimmingCharacters(in: whitespaceAndEqual)
+            guard !dataType.isEmpty else {
+                let error = DefinitionError(kind: .invalidTypeAlias, file: file, offset: offset)
+                return .failure(error)
+            }
+
+            return .success(KeyDefinition.Key(name: name, dataType: dataType))
+        }
+
+        keyDefinition = KeyDefinition(keys: keyResults.compactMap(\.successValue))
+        errors.append(contentsOf: keyResults.compactMap(\.failureError))
     }
 
     private mutating func updateOutput(kind: SwiftDeclarationKind, structure: [String: SourceKitRepresentable], file: File) {

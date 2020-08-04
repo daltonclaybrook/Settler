@@ -3,6 +3,8 @@ import SourceKittenFramework
 struct DefinitionError: Error {
     enum Kind {
         case keyIsNotAnEnum
+        case keyMemberIsNotATypeAlias
+        case invalidTypeAlias
     }
 
     let kind: Kind
@@ -39,6 +41,10 @@ extension DefinitionError.Kind: CustomStringConvertible {
         switch self {
         case .keyIsNotAnEnum:
             return "The Key type must be an enum"
+        case .keyMemberIsNotATypeAlias:
+            return "Key must only contain type-aliases. No other types are permitted."
+        case .invalidTypeAlias:
+            return "The type-alias is invalid. See the docs."
         }
     }
 }
