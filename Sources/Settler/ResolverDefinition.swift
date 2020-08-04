@@ -77,11 +77,6 @@ extension ResolverDefinition {
     }
 
     private mutating func updateOutput(kind: SwiftDeclarationKind, structure: [String: SourceKitRepresentable], file: File) {
-        guard kind == .typealias else {
-            errors.append(DefinitionError(kind: .outputIsNotATypeAlias, file: file, offset: structure.offset))
-            return
-        }
-
         switch TypeAliasDefinition.build(from: structure, in: file) {
         case .success(let definition):
             outputDefinition = definition
@@ -91,7 +86,6 @@ extension ResolverDefinition {
     }
 
     private mutating func updateFunctions(name: String, structure: [String: SourceKitRepresentable], file: File) {
-
     }
 }
 
