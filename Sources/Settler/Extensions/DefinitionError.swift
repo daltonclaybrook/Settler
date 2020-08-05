@@ -6,6 +6,7 @@ struct DefinitionError: Error {
         case keyMemberIsNotATypeAlias
         case invalidTypeAlias
         case outputIsNotATypeAlias
+        case unexpectedSyntaxElement
     }
 
     let kind: Kind
@@ -48,6 +49,8 @@ extension DefinitionError.Kind: CustomStringConvertible {
             return "The type-alias is invalid. See the docs."
         case .outputIsNotATypeAlias:
             return "Output must by a type-alias"
+        case .unexpectedSyntaxElement:
+            return "This syntax element is unexpected. Consider filing a GitHub issue."
         }
     }
 }

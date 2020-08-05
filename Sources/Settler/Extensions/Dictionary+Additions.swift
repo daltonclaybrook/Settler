@@ -5,6 +5,10 @@ extension Dictionary where Key == String, Value == SourceKitRepresentable {
         self[SwiftDocKey.name.rawValue] as? String
     }
 
+    var typeName: TypeName? {
+        self[SwiftDocKey.typeName.rawValue] as? TypeName
+    }
+
     var substructure: [[String: SourceKitRepresentable]]? {
         self[SwiftDocKey.substructure.rawValue] as? [[String: SourceKitRepresentable]]
     }

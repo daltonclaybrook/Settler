@@ -20,8 +20,14 @@ struct KeyDefinition {
 }
 
 struct ResolverFunction {
-    let argumentKeyAliases: [TypeName]
-    let returnKeyAlias: TypeName
+    struct Parameter {
+        let name: String
+        let typeName: TypeName
+    }
+
+    let name: String
+    let parameters: [Parameter]
+    let returnType: TypeName?
 }
 
 struct ResolverDefinition {
@@ -51,7 +57,7 @@ extension ResolverDefinition {
             } else if name == TypeNameConstants.output {
                 updateOutput(kind: kind, structure: member, file: file)
             } else if kind == .functionMethodInstance {
-                updateFunctions(name: name, structure: member, file: file)
+                updateFunctions(functionName: name, structure: member, file: file)
             }
         }
     }
@@ -85,7 +91,31 @@ extension ResolverDefinition {
         }
     }
 
-    private mutating func updateFunctions(name: String, structure: [String: SourceKitRepresentable], file: File) {
+    private mutating func updateFunctions(functionName: String, structure: [String: SourceKitRepresentable], file: File) {
+        let returnType = structure.typeName
+        let parameterStructures = structure.substructure ?? []
+        let parameterResults = parameterStructures.map { structure -> Result<ResolverFunction.Parameter, DefinitionError> in
+            guard let kind = structure.declarationKind,
+                kind == .varParameter,
+                let name = structure.name,
+                let typeName = structure.typeName else {
+                    let error = DefinitionError(kind: .unexpectedSyntaxElement, file: file, offset: structure.offset)
+                    return .failure(error)
+            }
+
+            let parameter = ResolverFunction.Parameter(name: name, typeName: typeName)
+            return .success(parameter)
+        }
+
+        let parameterErrors = parameterResults.compactMap(\.failureError)
+        errors.append(contentsOf: parameterErrors)
+
+        // Only create a resolver function if there are no errors
+        if !parameterErrors.isEmpty {
+            let parameters = parameterResults.compactMap(\.successValue)
+            let function = ResolverFunction(name: functionName, parameters: parameters, returnType: returnType)
+            functions.append(function)
+        }
     }
 }
 
