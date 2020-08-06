@@ -52,75 +52,7 @@ struct Resolve: ParsableCommand {
                 return path.bridge().appendingPathComponent(fileName)
             }
 
-        // Determine all of the Resolver definitions from parsing every source file
-        var definitions = try swiftFiles
-            .reduce(into: [TypeNameChain]()) { result, swiftFile in
-                guard let parsed = try getSubstructuresAndFileFor(swiftFile: swiftFile) else { return }
-
-                parsed.structures.forEach { substructure in
-                    storeTypeNameChainsImplementingResolver(in: &result, structure: substructure)
-                }
-            }
-            .map { ResolverDefinition(typeChain: $0) }
-
-        // Update the definitions with the relevant structures
-        try swiftFiles.forEach { swiftFile in
-            guard let parsed = try getSubstructuresAndFileFor(swiftFile: swiftFile) else { return }
-            definitions.mutableForEach { definition in
-                let structuresForDefinition = findSubstructureFor(typeChain: definition.typeChain, in: parsed.structures)
-                definition.update(with: structuresForDefinition, file: parsed.file)
-            }
-        }
-    }
-
-    // MARK: - Helpers
-
-    private func getSubstructuresAndFileFor(swiftFile: String) throws -> StructuresAndFile? {
-        guard let file = File(path: swiftFile) else {
-            throw SettlerError.failedToOpenFile(swiftFile)
-        }
-        let structure = try Structure(file: file)
-        return structure.dictionary.substructure.map { ($0, file) }
-    }
-
-    private func storeTypeNameChainsImplementingResolver(in typeChains: inout [TypeNameChain], structure: [String: SourceKitRepresentable], currentNamespaces: TypeNameChain = []) {
-        guard let typeName = structure.name,
-            let kind = structure.declarationKind,
-            Resolve.typeKinds.contains(kind)
-            else { return }
-
-        let namespacesAndType = currentNamespaces + [typeName]
-        let inheritedTypeNames = structure.inheritedTypes?
-            .compactMap { possibleType in
-                (possibleType as? [String: SourceKitRepresentable])?.name
-            } ?? []
-        if inheritedTypeNames.contains(TypeNameConstants.resolver) {
-            typeChains.append(namespacesAndType)
-        }
-
-        // Recurse into substructures and add any deeper types that implement Resolver
-        structure.substructure?.forEach { substructure in
-            storeTypeNameChainsImplementingResolver(
-                in: &typeChains,
-                structure: substructure,
-                currentNamespaces: namespacesAndType
-            )
-        }
-    }
-
-    /// Find all substructures for the given type chain
-    private func findSubstructureFor(typeChain: TypeNameChain, in structures: [[String: SourceKitRepresentable]]) -> [[String: SourceKitRepresentable]] {
-        var typeChain = typeChain
-        guard !typeChain.isEmpty else { return [] }
-        let firstType = typeChain.removeFirst()
-
-        let structuresForType = structures.filter { structure in
-            structure.name == firstType
-        }
-        if typeChain.isEmpty {
-            return structuresForType
-        } else {
-            return findSubstructureFor(typeChain: typeChain, in: structuresForType)
-        }
+        let definitions = try ResolverDefinitionBuilder.buildWith(swiftFiles: swiftFiles)
+        print(definitions)
     }
 }
