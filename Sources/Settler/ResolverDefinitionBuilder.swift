@@ -7,6 +7,9 @@ enum TypeNameConstants {
 }
 
 struct ResolverDefinitionBuilder {
+    /// A Resolver must be declared as one of these kinds
+    private static let declarationKinds: Set<SwiftDeclarationKind> = [.class, .struct, .enum]
+
     static func buildWith(swiftFiles: [String]) throws -> [ResolverDefinition] {
         var partialDefinitions = try swiftFiles.flatMap { filePath -> [PartialResolverDefinition] in
             guard let file = File(path: filePath) else { return [] }
@@ -105,6 +108,13 @@ struct ResolverDefinitionBuilder {
     }
 
     private static func update(definition: inout PartialResolverDefinition, member: [String: SourceKitRepresentable], in file: File) -> [DefinitionError] {
+        if let kind = member.declarationKind, declarationKinds.contains(kind) {
+            if definition.declarationFile != nil {
+                fatalError("Found multiple declarations for the Resolver \(definition.typeChain.dotJoined). This should never happen.")
+            }
+            definition.declarationFile = Located(file: file, offset: member.offset)
+        }
+
         let typeMembers = member.substructure ?? []
         return typeMembers.flatMap { member -> [DefinitionError] in
             guard let name = member.name,
@@ -169,7 +179,7 @@ struct ResolverDefinitionBuilder {
 
         let parameterErrors = parameterResults.compactMap(\.failureError)
         // Only create a resolver function if there are no errors
-        if !parameterErrors.isEmpty {
+        if parameterErrors.isEmpty {
             let parameters = parameterResults.compactMap(\.successValue)
             let function = PartialFunctionDefinition(name: functionName, parameters: parameters, returnType: returnType)
             let locatedFunction = Located(value: function, file: file, offset: functionStructure.offset)
@@ -207,7 +217,7 @@ struct ResolverDefinitionBuilder {
         definition.functions.forEach { locatedFunction in
             let function = locatedFunction.value
             let containsNonKeyParam = function.parameters.contains { param in
-                !param.name.isAcceptableResolverFunctionParameter
+                !param.typeName.isAcceptableResolverFunctionParameter
             }
 
             if let returnType = function.returnType, returnType.isAcceptableResolverFunctionReturnType {

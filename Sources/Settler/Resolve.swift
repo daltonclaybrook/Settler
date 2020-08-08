@@ -47,12 +47,16 @@ struct Resolve: ParsableCommand {
         let swiftFiles = enumerator
             .compactMap { fileName -> String? in
                 guard let fileName = fileName as? String,
-                    // TODO: fix this
-                    fileName.hasSuffix("PersonResolver.swift") else { return nil }
+                    fileName.hasSuffix(".swift") else { return nil }
                 return path.bridge().appendingPathComponent(fileName)
             }
 
-        let definitions = try ResolverDefinitionBuilder.buildWith(swiftFiles: swiftFiles)
-        print(definitions)
+        do {
+            let definitions = try ResolverDefinitionBuilder.buildWith(swiftFiles: swiftFiles)
+            print(definitions)
+        } catch let error {
+            print(error)
+            throw error
+        }
     }
 }

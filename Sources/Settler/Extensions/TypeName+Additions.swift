@@ -30,3 +30,9 @@ extension TypeName {
         stripping(prefix: "Lazy<", andSuffix: ">").strippingPrefix("Key.")
     }
 }
+
+extension TypeNameChain {
+    var dotJoined: TypeName {
+        joined(separator: ".")
+    }
+}
