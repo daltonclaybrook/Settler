@@ -7,6 +7,23 @@ extension String {
     func bridge() -> NSString {
         self as NSString
     }
+
+    func strippingPrefix(_ prefix: String) -> String {
+        guard hasPrefix(prefix) else { return self }
+        return String(dropFirst(prefix.count))
+    }
+
+    func strippingSuffix(_ suffix: String) -> String {
+        guard hasSuffix(suffix) else { return self }
+        return String(dropLast(suffix.count))
+    }
+
+    /// Only strip the provided prefix and suffix if both exist
+    func stripping(prefix: String, andSuffix suffix: String) -> Self {
+        guard hasPrefix(prefix) && hasSuffix(suffix) else { return self }
+        let stripped = String(dropFirst(prefix.count))
+        return String(stripped.dropLast(suffix.count))
+    }
 }
 
 extension NSString {

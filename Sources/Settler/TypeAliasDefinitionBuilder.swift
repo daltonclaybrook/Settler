@@ -8,7 +8,7 @@ struct TypeAliasDefinitionBuilder {
         case invalidExistingType
     }
 
-    static func buildFrom(aliasStructure: [String: SourceKitRepresentable], in file: File) -> Result<TypeAliasDefinition, TypeAliasError> {
+    static func buildFrom(aliasStructure: [String: SourceKitRepresentable], in file: File) -> Result<Located<TypeAliasDefinition>, TypeAliasError> {
         guard let kind = aliasStructure.declarationKind, kind == .typealias else {
             return .failure(.notATypeAlias)
         }
@@ -32,7 +32,8 @@ struct TypeAliasDefinitionBuilder {
             return .failure(.invalidExistingType)
         }
 
-        return .success(TypeAliasDefinition(name: name, existingType: existingType))
+        let definition = TypeAliasDefinition(name: name, existingType: existingType)
+        return .success(Located(value: definition, file: file, offset: offset))
     }
 }
 

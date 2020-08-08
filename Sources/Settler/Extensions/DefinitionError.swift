@@ -7,6 +7,10 @@ struct DefinitionError: Error {
         case invalidTypeAlias
         case outputIsNotATypeAlias
         case unexpectedSyntaxElement
+        case cantFindDeclarationFile
+        case resolverFunctionContainsNonKeyParam
+        case duplicateReturnTypesInResolverFunctions
+        case noResolverFunctionForKey
     }
 
     let kind: Kind
@@ -23,6 +27,10 @@ extension DefinitionError: CustomStringConvertible {
         let location = file.stringView.lineAndCharacter(forByteOffset: byteOffset)
         self.line = (location?.line ?? 0) + 1 // 1-indexed
         self.character = (location?.character ?? 0) + 1 // 1-indexed
+    }
+
+    init<T>(kind: Kind, located: Located<T>) {
+        self.init(kind: kind, file: located.file, offset: located.offset)
     }
 
     /// Inspired by SwiftLint
@@ -51,6 +59,14 @@ extension DefinitionError.Kind: CustomStringConvertible {
             return "Output must by a type-alias"
         case .unexpectedSyntaxElement:
             return "This syntax element is unexpected. Consider filing a GitHub issue."
+        case .cantFindDeclarationFile:
+            return "The declaration for this type could not be found. Make sure the Swift file is included in your `--sources` path."
+        case .resolverFunctionContainsNonKeyParam:
+            return "Resolver functions must only accept `Key` members as arguments. This function is considered a resolver function because it returns a `Key` member."
+        case .duplicateReturnTypesInResolverFunctions:
+            return "This resolver function has the same return type as another function. You may only implement one resolver function per type."
+        case .noResolverFunctionForKey:
+            return "Could not find a resolver function for this key"
         }
     }
 }
