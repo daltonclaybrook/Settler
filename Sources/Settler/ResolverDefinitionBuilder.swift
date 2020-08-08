@@ -8,21 +8,20 @@ enum TypeNameConstants {
 
 struct ResolverDefinitionBuilder {
     static func buildWith(swiftFiles: [String]) throws -> [ResolverDefinition] {
-        var definitions = try swiftFiles.flatMap { filePath -> [PartialResolverDefinition] in
+        var partialDefinitions = try swiftFiles.flatMap { filePath -> [PartialResolverDefinition] in
             guard let file = File(path: filePath) else { return [] }
             let typeChains = try getTypeChainsImplementingResolver(in: file)
-            let adoptionLocation = Located(file: file, offset: nil)
             return typeChains.map {
                 PartialResolverDefinition(typeChain: $0.value, adoptionFile: $0.mapVoid())
             }
         }
 
-        let errors = try swiftFiles.reduce(into: [DefinitionError]()) { result, filePath in
+        let definitionErrors = try swiftFiles.reduce(into: [DefinitionError]()) { result, filePath in
             guard let file = File(path: filePath) else { return }
             let structure = try Structure(file: file)
             let fileMembers = structure.dictionary.substructure ?? []
 
-            definitions.mutableForEach { definition in
+            partialDefinitions.mutableForEach { definition in
                 let matchingMembers = findFileMembersMatching(typeChain: definition.typeChain, in: fileMembers)
                 let errors = update(
                     definition: &definition,
@@ -33,12 +32,15 @@ struct ResolverDefinitionBuilder {
             }
         }
 
-        if errors.isEmpty {
-            let finalizedOrErrors = definitions.map(finalizeDefinition(_:))
-        }
+        let finalizedOrErrors = definitionErrors.isEmpty ? partialDefinitions.map(finalizeDefinition(_:)) : []
+        let finalizeErrors = finalizedOrErrors.flatMap { $0.right ?? [] }
+        let allErrors = definitionErrors + finalizeErrors
 
-        print(errors)
-        return definitions
+        if allErrors.isEmpty {
+            return finalizedOrErrors.compactMap(\.left)
+        } else {
+            throw AggregateError(underlying: allErrors)
+        }
     }
 
     // MARK: - Helpers

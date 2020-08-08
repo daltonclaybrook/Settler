@@ -70,3 +70,13 @@ extension DefinitionError.Kind: CustomStringConvertible {
         }
     }
 }
+
+struct AggregateError<E: Error>: Error {
+    let underlying: [E]
+}
+
+extension AggregateError: CustomStringConvertible where E: CustomStringConvertible {
+    var description: String {
+        underlying.map(\.description).joined(separator: "\n")
+    }
+}
