@@ -6,6 +6,7 @@ struct DefinitionError: Error {
         case keyMemberIsNotATypeAlias
         case invalidTypeAlias
         case outputIsNotATypeAlias
+        case outputIsNotAKeyMember
         case unexpectedSyntaxElement
         case cantFindDeclarationFile
         case resolverFunctionContainsNonKeyParam
@@ -25,8 +26,8 @@ extension DefinitionError: CustomStringConvertible {
         self.filePath = file.path
         let byteOffset = ByteCount(offset ?? 0)
         let location = file.stringView.lineAndCharacter(forByteOffset: byteOffset)
-        self.line = (location?.line ?? 0) + 1 // 1-indexed
-        self.character = (location?.character ?? 0) + 1 // 1-indexed
+        self.line = (location?.line ?? 0)
+        self.character = (location?.character ?? 0)
     }
 
     init<T>(kind: Kind, located: Located<T>) {
@@ -57,12 +58,14 @@ extension DefinitionError.Kind: CustomStringConvertible {
             return "The type-alias is invalid. See the docs."
         case .outputIsNotATypeAlias:
             return "Output must by a type-alias"
+        case .outputIsNotAKeyMember:
+            return "Output must be a member of 'Key'"
         case .unexpectedSyntaxElement:
             return "This syntax element is unexpected. Consider filing a GitHub issue."
         case .cantFindDeclarationFile:
-            return "The declaration for this type could not be found. Make sure the Swift file is included in your `--sources` path."
+            return "The declaration for this type could not be found. Make sure the Swift file is included in your '--sources' path."
         case .resolverFunctionContainsNonKeyParam:
-            return "Resolver functions must only accept `Key` members as arguments. This function is considered a resolver function because it returns a `Key` member."
+            return "Resolver functions must only accept 'Key' members as arguments. This function is considered a resolver function because it returns a 'Key' member."
         case .duplicateReturnTypesInResolverFunctions:
             return "This resolver function has the same return type as another function. You may only implement one resolver function per type."
         case .noResolverFunctionForKey:

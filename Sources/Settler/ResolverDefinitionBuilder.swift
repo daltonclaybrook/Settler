@@ -154,9 +154,11 @@ struct ResolverDefinitionBuilder {
 
     private static func updateOutput(for definition: inout PartialResolverDefinition, kind: SwiftDeclarationKind, outputStructure: [String: SourceKitRepresentable], file: File) -> [DefinitionError] {
         switch TypeAliasDefinitionBuilder.buildFrom(aliasStructure: outputStructure, in: file) {
-        case .success(let output):
+        case .success(let output) where output.existingType.isAcceptableResolverFunctionReturnType:
             definition.outputDefinition = output
             return []
+        case .success(let output):
+            return [DefinitionError(kind: .outputIsNotAKeyMember, located: output)]
         case .failure(let error):
             return [DefinitionError(kind: error.outputErrorKind, file: file, offset: outputStructure.offset)]
         }

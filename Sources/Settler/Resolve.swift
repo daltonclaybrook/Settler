@@ -1,4 +1,5 @@
 import ArgumentParser
+import Dispatch
 import Foundation
 import SourceKittenFramework
 
@@ -52,11 +53,14 @@ struct Resolve: ParsableCommand {
             }
 
         do {
-            let definitions = try ResolverDefinitionBuilder.buildWith(swiftFiles: swiftFiles)
-            print(definitions)
+            _ = try ResolverDefinitionBuilder.buildWith(swiftFiles: swiftFiles)
         } catch let error {
             print(error)
-            throw error
+            Resolve.exit(withError: EmptyError())
         }
     }
+}
+
+struct EmptyError: Error, CustomStringConvertible {
+    var description: String { "" }
 }
