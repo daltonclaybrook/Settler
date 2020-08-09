@@ -34,16 +34,6 @@ struct Resolve: ParsableCommand {
             throw SettlerError.unknownError
         }
 
-        /*
-        Tasks:
-         - Determine list of Swift files
-         - Iterate the list of files and determine the types of all Resolvers
-         - Iterate again and determine all required types/functions for the resolvers
-         - Determine which resolvers have errors, i.e. Missing/invalid `Key` or `Output`, missing/invalid functions, etc. and report errors
-         - Determine correct order to call resolver functions, or report error if there are issues.
-         - Generate the `[Resolver]+Output.swift` files for each Resolver and save them to disk
-        */
-
         // Determine absolute paths of all Swift files
         let swiftFiles = enumerator
             .compactMap { fileName -> String? in
@@ -66,13 +56,35 @@ struct Resolve: ParsableCommand {
             }
         }
 
-        print(orderedDefinitions)
+        try orderedDefinitions.forEach { definition in
+            let builder = OutputFileContentsBuilder(orderedDefinition: definition)
+            // TODO: make indentation a command-line argument
+            let contents = builder.buildFileContents(with: .spaces(count: 4))
+            try saveFileContents(contents, for: definition.definition)
+        }
+
+        if !allErrors.isEmpty {
+            let errorString = allErrors.errorString
+            print(errorString, to: &standardError)
+        } else {
+            print("✅ All Resolvers were generated successfully!")
+        }
     }
 
     // MARK: - Helpers
 
     private func exitWithFailure() -> Never {
-        Resolve.exit(withError: EmptyError())
+        Self.exit(withError: EmptyError())
+    }
+
+    private func saveFileContents(_ contents: String, for definition: ResolverDefinition) throws {
+        let fileName = "\(definition.typeChain.dotJoined)+Output.swift"
+        let filePath = definition.declarationFilePath
+            .bridge()
+            .deletingLastPathComponent
+            .bridge()
+            .appendingPathComponent(fileName)
+        try contents.write(toFile: filePath, atomically: true, encoding: .utf8)
     }
 }
 
