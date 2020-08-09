@@ -29,9 +29,9 @@ struct ResolverDefinitionBuilder {
             let structure = try Structure(file: file)
             let fileMembers = structure.dictionary.substructure ?? []
 
-            partialDefinitions.mutableForEach { definition in
+            try partialDefinitions.mutableForEach { definition in
                 let matchingMembers = findFileMembersMatching(typeChain: definition.typeChain, in: fileMembers)
-                let errors = update(
+                let errors = try update(
                     definition: &definition,
                     withMatchingMembers: matchingMembers,
                     in: file
@@ -105,13 +105,13 @@ struct ResolverDefinitionBuilder {
     ///
     /// Members provided to this function should already be confirmed to match the
     /// type chain of the definition. Passing unconfirmed members is a programmer error.
-    private static func update(definition: inout PartialResolverDefinition, withMatchingMembers members: [[String: SourceKitRepresentable]], in file: File) -> [DefinitionError] {
-        members.flatMap { member in
-            update(definition: &definition, member: member, in: file)
+    private static func update(definition: inout PartialResolverDefinition, withMatchingMembers members: [[String: SourceKitRepresentable]], in file: File) throws -> [DefinitionError] {
+        try members.flatMap { member in
+            try update(definition: &definition, member: member, in: file)
         }
     }
 
-    private static func update(definition: inout PartialResolverDefinition, member: [String: SourceKitRepresentable], in file: File) -> [DefinitionError] {
+    private static func update(definition: inout PartialResolverDefinition, member: [String: SourceKitRepresentable], in file: File) throws -> [DefinitionError] {
         if let kind = member.declarationKind, declarationKinds.contains(kind) {
             if definition.declarationFile != nil {
                 fatalError("Found multiple declarations for the Resolver \(definition.typeChain.dotJoined). This should never happen.")
@@ -120,7 +120,7 @@ struct ResolverDefinitionBuilder {
         }
 
         let typeMembers = member.substructure ?? []
-        return typeMembers.flatMap { member -> [DefinitionError] in
+        return try typeMembers.flatMap { member -> [DefinitionError] in
             guard let name = member.name,
                 let kind = member.declarationKind
                 else { return [] }
@@ -130,7 +130,7 @@ struct ResolverDefinitionBuilder {
             } else if name == TypeNameConstants.output {
                 return updateOutput(for: &definition, kind: kind, outputStructure: member, file: file)
             } else if kind == .functionMethodInstance {
-                return updateFunctions(for: &definition, functionName: name, functionStructure: member, file: file)
+                return try updateFunctions(for: &definition, functionName: name, functionStructure: member, file: file)
             } else {
                 return []
             }
@@ -168,30 +168,39 @@ struct ResolverDefinitionBuilder {
         }
     }
 
-    private static func updateFunctions(for definition: inout PartialResolverDefinition, functionName: String, functionStructure: [String: SourceKitRepresentable], file: File) -> [DefinitionError] {
+    private static func updateFunctions(for definition: inout PartialResolverDefinition, functionName: String, functionStructure: [String: SourceKitRepresentable], file: File) throws -> [DefinitionError] {
+        guard let nameOffset = functionStructure.nameOffset,
+            let nameLength = functionStructure.nameLength,
+            let bodyOffset = functionStructure.bodyOffset else {
+                let error = DefinitionError(kind: .invalidFunction, file: file, offset: functionStructure.offset)
+                return [error]
+        }
+
         let returnType = functionStructure.typeName
         let parameterStructures = functionStructure.substructure ?? []
-        let parameterResults = parameterStructures.compactMap { structure -> Result<FunctionParameter, DefinitionError>? in
+        let parameters = parameterStructures.compactMap { structure -> FunctionParameter? in
             guard let kind = structure.declarationKind,
                 kind == .varParameter,
                 let name = structure.name,
-                let typeName = structure.typeName else {
-                    return nil
-            }
-
-            let parameter = FunctionParameter(name: name, typeName: typeName)
-            return .success(parameter)
+                let typeName = structure.typeName else { return nil }
+            return FunctionParameter(name: name, typeName: typeName)
         }
 
-        let parameterErrors = parameterResults.compactMap(\.failureError)
+        let syntaxMap = try SyntaxMap(file: file)
+        let startOffset = nameOffset + nameLength
+        let isThrowingFunction = syntaxMap.tokens.contains { token in
+            let inRange = token.offset.value >= startOffset && (token.offset + token.length).value < bodyOffset
+            guard inRange else { return false }
+            guard token.type == SyntaxKind.keyword.rawValue else { return false }
+            let tokenString = file.stringView.substringWithByteRange(token.range) ?? ""
+            return tokenString == "throws"
+        }
+
         // Only create a resolver function if there are no errors
-        if parameterErrors.isEmpty {
-            let parameters = parameterResults.compactMap(\.successValue)
-            let function = PartialFunctionDefinition(name: functionName, parameters: parameters, returnType: returnType)
-            let locatedFunction = Located(value: function, file: file, offset: functionStructure.offset)
-            definition.functions.append(locatedFunction)
-        }
-        return parameterErrors
+        let function = PartialFunctionDefinition(name: functionName, parameters: parameters, returnType: returnType, isThrowing: isThrowingFunction)
+        let locatedFunction = Located(value: function, file: file, offset: functionStructure.offset)
+        definition.functions.append(locatedFunction)
+        return []
     }
 
     /// Discover errors that can only be determined after the definition has been completed
@@ -232,13 +241,13 @@ struct ResolverDefinitionBuilder {
                 }
 
                 let resolverFunction = locatedFunction.map {
-                    ResolverFunctionDefinition(name: $0.name, parameters: $0.parameters, returnType: returnType)
+                    ResolverFunctionDefinition(name: $0.name, parameters: $0.parameters, returnType: returnType, isThrowing: $0.isThrowing)
                 }
                 resolverFunctions.append(resolverFunction)
             } else if function.returnType == nil && !containsNonKeyParam {
                 // This is a config function
                 let configFunction = locatedFunction.map {
-                    ConfigFunctionDefinition(name: $0.name, parameters: $0.parameters)
+                    ConfigFunctionDefinition(name: $0.name, parameters: $0.parameters, isThrowing: $0.isThrowing)
                 }
                 configFunctions.append(configFunction)
             }

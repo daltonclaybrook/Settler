@@ -5,6 +5,7 @@ struct DefinitionError: Error {
         case keyIsNotAnEnum
         case keyMemberIsNotATypeAlias
         case invalidTypeAlias
+        case invalidFunction
         case outputIsNotATypeAlias
         case outputIsNotAKeyMember
         case unexpectedSyntaxElement
@@ -58,6 +59,8 @@ extension DefinitionError.Kind: CustomStringConvertible {
             return "Key must only contain type-aliases. No other members are permitted."
         case .invalidTypeAlias:
             return "The type-alias is invalid. See the docs."
+        case .invalidFunction:
+            return "The function is invalid. See the docs."
         case .outputIsNotATypeAlias:
             return "Output must by a type-alias"
         case .outputIsNotAKeyMember:

@@ -22,17 +22,20 @@ struct PartialFunctionDefinition {
     let name: String
     let parameters: [FunctionParameter]
     let returnType: TypeName?
+    let isThrowing: Bool
 }
 
 struct ResolverFunctionDefinition {
     let name: String
     let parameters: [FunctionParameter]
     let returnType: TypeName
+    let isThrowing: Bool
 }
 
 struct ConfigFunctionDefinition {
     let name: String
     let parameters: [FunctionParameter]
+    let isThrowing: Bool
 }
 
 struct PartialResolverDefinition {
@@ -66,6 +69,7 @@ struct ResolverDefinition {
 protocol FunctionDefinitionType {
     var name: String { get }
     var parameters: [FunctionParameter] { get }
+    var isThrowing: Bool { get }
 }
 
 extension ResolverFunctionDefinition: FunctionDefinitionType {}

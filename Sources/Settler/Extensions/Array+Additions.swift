@@ -1,7 +1,7 @@
 extension Array {
-    mutating func mutableForEach(block: (inout Element) -> Void) {
-        indices.forEach { index in
-            block(&self[index])
+    mutating func mutableForEach(block: (inout Element) throws -> Void) rethrows {
+        try indices.forEach { index in
+            try block(&self[index])
         }
     }
 

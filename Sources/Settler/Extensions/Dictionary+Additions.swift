@@ -30,6 +30,10 @@ extension Dictionary where Key == String, Value == SourceKitRepresentable {
         self[SwiftDocKey.nameOffset.rawValue] as? Int64
     }
 
+    var bodyOffset: Int64? {
+        self[SwiftDocKey.bodyOffset.rawValue] as? Int64
+    }
+
     var length: Int64? {
         self[SwiftDocKey.length.rawValue] as? Int64
     }
