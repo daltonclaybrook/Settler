@@ -14,7 +14,16 @@ struct Resolve: ParsableCommand {
             help: "Path to a directory used to search for Resolvers")
     var sourcesPath: String = "."
 
+    @Option(help: "Style of indentation to use for generated code")
+    var indent: IndentArgument = .spaces
+
+    @Option(help: "Count of spaces to use for indentation. Only valid with '--indent spaces'.")
+    var tabSize: Int = 4
+
     private static let typeKinds: Set<SwiftDeclarationKind> = [.class, .struct, .enum, .extension]
+    private var indentation: Indentation {
+        indent.toIndentation(tabSize: tabSize)
+    }
 
     func validate() throws {
         let fullSourcesPath = sourcesPath.bridge().absolutePathRepresentation()
@@ -58,8 +67,7 @@ struct Resolve: ParsableCommand {
 
         try orderedDefinitions.forEach { definition in
             let builder = OutputFileContentsBuilder(orderedDefinition: definition)
-            // TODO: make indentation a command-line argument
-            let contents = builder.buildFileContents(with: .spaces(count: 4))
+            let contents = builder.buildFileContents(with: indentation)
             try saveFileContents(contents, for: definition.definition)
         }
 
