@@ -1,18 +1,5 @@
-struct FunctionCall {
-    let definition: ResolverFunctionDefinition
-    let isLazy: Bool
-}
-
-struct FunctionSection {
-    let calls: [FunctionCall]
-}
-
-struct FunctionOrder {
-    let sections: [FunctionSection]
-}
-
 struct FunctionOrderBuilder {
-    static func build(with definition: ResolverDefinition) -> Result<FunctionOrder, AggregateError<DefinitionError>> {
+    static func build(with definition: ResolverDefinition) -> Either<FunctionOrder, [DefinitionError]> {
         var resolverFunctions = definition.resolverFunctions
         let zeroParameters = resolverFunctions.compactMapRemoving { function -> FunctionCall? in
             guard function.parameters.isEmpty else { return nil }
@@ -21,7 +8,7 @@ struct FunctionOrderBuilder {
 
         guard !zeroParameters.isEmpty else {
             let error = DefinitionError(kind: .noResolverFunctionsWithZeroParams, located: definition.adoptionFile)
-            return .failure(AggregateError(underlying: [error]))
+            return .right([error])
         }
 
         let initialSection = FunctionSection(calls: zeroParameters)
@@ -30,7 +17,7 @@ struct FunctionOrderBuilder {
             remainingFunctions: resolverFunctions,
             definition: definition
         )
-        return allSectionsResult.map(FunctionOrder.init)
+        return allSectionsResult.mapLeft(FunctionOrder.init)
     }
 
     // MARK: - Helpers
@@ -46,7 +33,7 @@ struct FunctionOrderBuilder {
         initial: FunctionSection,
         remainingFunctions: [Located<ResolverFunctionDefinition>],
         definition: ResolverDefinition
-    ) -> Result<[FunctionSection], AggregateError<DefinitionError>> {
+    ) -> Either<[FunctionSection], [DefinitionError]> {
         var remainingFunctions = remainingFunctions
         var allSections = [initial]
         while !remainingFunctions.isEmpty {
@@ -63,13 +50,12 @@ struct FunctionOrderBuilder {
                 let errors = remainingFunctions.map { function in
                     DefinitionError(kind: .unresolvableDependencies, located: function)
                 }
-                let aggregate = AggregateError(underlying: errors)
-                return .failure(aggregate)
+                return .right(errors)
             } else {
                 let section = FunctionSection(calls: calls)
                 allSections.append(section)
             }
         }
-        return .success(allSections)
+        return .left(allSections)
     }
 }

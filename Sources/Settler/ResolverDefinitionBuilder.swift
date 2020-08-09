@@ -7,10 +7,15 @@ enum TypeNameConstants {
 }
 
 struct ResolverDefinitionBuilder {
+    struct Output {
+        let definitions: [ResolverDefinition]
+        let errors: [DefinitionError]
+    }
+
     /// A Resolver must be declared as one of these kinds
     private static let declarationKinds: Set<SwiftDeclarationKind> = [.class, .struct, .enum]
 
-    static func buildWith(swiftFiles: [String]) throws -> Either<[ResolverDefinition], [DefinitionError]> {
+    static func buildWith(swiftFiles: [String]) throws -> Output {
         var partialDefinitions = try swiftFiles.flatMap { filePath -> [PartialResolverDefinition] in
             guard let file = File(path: filePath) else { return [] }
             let typeChains = try getTypeChainsImplementingResolver(in: file)
@@ -39,11 +44,10 @@ struct ResolverDefinitionBuilder {
         let finalizeErrors = finalizedOrErrors.flatMap { $0.right ?? [] }
         let allErrors = definitionErrors + finalizeErrors
 
-        if allErrors.isEmpty {
-            return .left(finalizedOrErrors.compactMap(\.left))
-        } else {
-            return .right(allErrors)
-        }
+        return Output(
+            definitions: finalizedOrErrors.compactMap(\.left),
+            errors: allErrors
+        )
     }
 
     // MARK: - Helpers

@@ -21,4 +21,13 @@ extension Either {
             return right
         }
     }
+
+    func mapLeft<T>(_ transform: (L) -> T) -> Either<T, R> {
+        switch self {
+        case .left(let value):
+            return .left(transform(value))
+        case .right(let value):
+            return .right(value)
+        }
+    }
 }

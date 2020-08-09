@@ -47,3 +47,10 @@ extension Array {
         return result
     }
 }
+
+extension Array where Element == DefinitionError {
+    /// Returns the complete error string of an array of definition errors
+    var errorString: String {
+        map(\.description).joined(separator: "\n")
+    }
+}

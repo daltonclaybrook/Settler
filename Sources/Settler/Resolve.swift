@@ -52,14 +52,21 @@ struct Resolve: ParsableCommand {
                 return path.bridge().appendingPathComponent(fileName)
             }
 
-        let either = try ResolverDefinitionBuilder.buildWith(swiftFiles: swiftFiles)
-        guard let definitions = either.left else {
-            let errorString = either.right?.map(\.description).joined(separator: "\n") ?? ""
-            print(errorString)
-            exitWithFailure()
+        let definitionsAndErrors = try ResolverDefinitionBuilder.buildWith(swiftFiles: swiftFiles)
+        var allErrors = definitionsAndErrors.errors
+        var orderedDefinitions: [OrderedResolverDefinition] = []
+
+        definitionsAndErrors.definitions.forEach { definition in
+            switch FunctionOrderBuilder.build(with: definition) {
+            case .left(let order):
+                let ordered = OrderedResolverDefinition(definition: definition, functionOrder: order)
+                orderedDefinitions.append(ordered)
+            case .right(let errors):
+                allErrors.append(contentsOf: errors)
+            }
         }
 
-        print(definitions)
+        print(orderedDefinitions)
     }
 
     // MARK: - Helpers
