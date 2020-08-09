@@ -52,12 +52,20 @@ struct Resolve: ParsableCommand {
                 return path.bridge().appendingPathComponent(fileName)
             }
 
-        do {
-            _ = try ResolverDefinitionBuilder.buildWith(swiftFiles: swiftFiles)
-        } catch let error {
-            print(error)
-            Resolve.exit(withError: EmptyError())
+        let either = try ResolverDefinitionBuilder.buildWith(swiftFiles: swiftFiles)
+        guard let definitions = either.left else {
+            let errorString = either.right?.map(\.description).joined(separator: "\n") ?? ""
+            print(errorString)
+            exitWithFailure()
         }
+
+        print(definitions)
+    }
+
+    // MARK: - Helpers
+
+    private func exitWithFailure() -> Never {
+        Resolve.exit(withError: EmptyError())
     }
 }
 

@@ -25,9 +25,19 @@ extension TypeName {
         strippingPrefix("Key.")
     }
 
+    /// Given "Lazy<Key.Foo>", return "Key.Foo"
+    var strippingLazyWrapper: String {
+        stripping(prefix: "Lazy<", andSuffix: ">")
+    }
+
     /// Given "Key.Foo", return "Foo". Given "Lazy<Key.Foo>", return "Foo"
     var strippingKeyAndLazyWrapper: String {
-        stripping(prefix: "Lazy<", andSuffix: ">").strippingPrefix("Key.")
+        strippingLazyWrapper.strippingKeyPrefix
+    }
+
+    /// Given "Key.Foo", return "Lazy<Key.Foo>"
+    var lazyWrapped: String {
+        "Lazy<\(self)>"
     }
 }
 

@@ -10,7 +10,7 @@ struct ResolverDefinitionBuilder {
     /// A Resolver must be declared as one of these kinds
     private static let declarationKinds: Set<SwiftDeclarationKind> = [.class, .struct, .enum]
 
-    static func buildWith(swiftFiles: [String]) throws -> [ResolverDefinition] {
+    static func buildWith(swiftFiles: [String]) throws -> Either<[ResolverDefinition], [DefinitionError]> {
         var partialDefinitions = try swiftFiles.flatMap { filePath -> [PartialResolverDefinition] in
             guard let file = File(path: filePath) else { return [] }
             let typeChains = try getTypeChainsImplementingResolver(in: file)
@@ -40,9 +40,9 @@ struct ResolverDefinitionBuilder {
         let allErrors = definitionErrors + finalizeErrors
 
         if allErrors.isEmpty {
-            return finalizedOrErrors.compactMap(\.left)
+            return .left(finalizedOrErrors.compactMap(\.left))
         } else {
-            throw AggregateError(underlying: allErrors)
+            return .right(allErrors)
         }
     }
 
@@ -209,9 +209,6 @@ struct ResolverDefinitionBuilder {
             let error = DefinitionError(kind: .cantFindDeclarationFile, located: definition.adoptionFile)
             return .right([error])
         }
-        guard let adoptionPath = definition.adoptionFile.file.path else {
-            fatalError("The adoption file path should never be nil since the file is always initialized with a path.")
-        }
 
         var resolverFunctions: [Located<ResolverFunctionDefinition>] = []
         var configFunctions: [Located<ConfigFunctionDefinition>] = []
@@ -271,11 +268,11 @@ struct ResolverDefinitionBuilder {
         if allErrors.isEmpty {
             let resolved = ResolverDefinition(
                 typeChain: definition.typeChain,
-                adoptionFilePath: adoptionPath,
+                adoptionFile: definition.adoptionFile,
                 declarationFilePath: declarationFilePath,
                 keyDefinition: key.value,
                 outputDefinition: output.value,
-                resolverFunctions: resolverFunctions.map(\.value),
+                resolverFunctions: resolverFunctions,
                 configFunctions: configFunctions.map(\.value)
             )
             return .left(resolved)

@@ -49,7 +49,7 @@ struct PartialResolverDefinition {
 struct ResolverDefinition {
     let typeChain: TypeNameChain
     /// The Swift file path where the type adopts the Resolver protocol
-    let adoptionFilePath: String
+    let adoptionFile: Located<Void>
     /// The Swift file path where the type is declared
     let declarationFilePath: String
     let keyDefinition: KeyDefinition
@@ -57,8 +57,22 @@ struct ResolverDefinition {
     /// A resolver function is a function that returns a member of the `Key`.
     /// These functions may only accept other `Key` members as arguments.
     /// There must not be two resolver functions that return the same key.
-    let resolverFunctions: [ResolverFunctionDefinition]
+    let resolverFunctions: [Located<ResolverFunctionDefinition>]
     /// A config function is one that accepts only `Key` members as arguments
     /// and has a return type of `Void`
     let configFunctions: [ConfigFunctionDefinition]
+}
+
+protocol FunctionDefinitionType {
+    var name: String { get }
+    var parameters: [FunctionParameter] { get }
+}
+
+extension ResolverFunctionDefinition: FunctionDefinitionType {}
+extension ConfigFunctionDefinition: FunctionDefinitionType {}
+
+extension ResolverDefinition {
+    var allFunctions: [FunctionDefinitionType] {
+        resolverFunctions.map(\.value) + configFunctions
+    }
 }

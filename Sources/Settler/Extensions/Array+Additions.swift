@@ -33,4 +33,17 @@ extension Array {
         }
         return into
     }
+
+    /// Apply a map function to every element in the array. For those elements that
+    /// return a non-nil result, remove that element from the receiver. Return the
+    /// mapped elements.
+    mutating func compactMapRemoving<T>(_ transform: (Element) -> T?) -> [T] {
+        var result: [T] = []
+        removeAll { element in
+            guard let output = transform(element) else { return false }
+            result.append(output)
+            return true
+        }
+        return result
+    }
 }

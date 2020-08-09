@@ -12,6 +12,8 @@ struct DefinitionError: Error {
         case resolverFunctionContainsNonKeyParam
         case duplicateReturnTypesInResolverFunctions
         case noResolverFunctionForKey
+        case noResolverFunctionsWithZeroParams
+        case unresolvableDependencies
     }
 
     let kind: Kind
@@ -70,6 +72,10 @@ extension DefinitionError.Kind: CustomStringConvertible {
             return "This resolver function has the same return type as another function. You may only implement one resolver function per type."
         case .noResolverFunctionForKey:
             return "Could not find a resolver function for this key"
+        case .noResolverFunctionsWithZeroParams:
+            return "None of the resolver functions could be called because they all depend on other functions"
+        case .unresolvableDependencies:
+            return "Could not resolve the dependencies of this function. This could be due to a circular dependency chain."
         }
     }
 }
