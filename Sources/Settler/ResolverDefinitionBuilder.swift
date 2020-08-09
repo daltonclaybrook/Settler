@@ -268,6 +268,11 @@ struct ResolverDefinitionBuilder {
             }
         }
 
+        // If the generated `resolve() -> Output` function has been found, remove it
+        resolverFunctions.removeAll { function in
+            function.name == "resolve()" && function.returnType == TypeNameConstants.output
+        }
+
         let allErrors = functionErrors + duplicateFunctionErrors + missingFunctionErrors
         if allErrors.isEmpty {
             let resolved = ResolverDefinition(

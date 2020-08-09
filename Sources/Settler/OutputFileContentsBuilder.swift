@@ -23,9 +23,8 @@ final class OutputFileContentsBuilder {
         \(OutputFileContentsBuilder.doNotEditString)
 
         extension \(definition.typeChain.dotJoined) {
-        \(extensionIndent)func resolve() -> \(definition.outputDefinition.existingType) {
+        \(extensionIndent)func resolve() -> Output {
         \(sectionsString)
-
         \(configsString)
         \(returnString)
         \(extensionIndent)}
