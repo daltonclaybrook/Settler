@@ -1,4 +1,4 @@
-final class OutputFileBuilder {
+final class OutputFileContentsBuilder {
     let orderedDefinition: OrderedResolverDefinition
 
     private static let projectURL = "https://github.com/daltonclaybrook/Settler"
@@ -9,7 +9,7 @@ final class OutputFileBuilder {
         self.orderedDefinition = orderedDefinition
     }
 
-    func buildFile(with indentation: Indentation) -> String {
+    func buildFileContents(with indentation: Indentation) -> String {
         let definition = orderedDefinition.definition
         let extensionIndent = indentation.depth(1)
         let functionIndent = extensionIndent + 1
@@ -19,8 +19,8 @@ final class OutputFileBuilder {
         let returnString = makeReturnString(indent: functionIndent)
 
         return """
-        \(OutputFileBuilder.headerString)
-        \(OutputFileBuilder.doNotEditString)
+        \(OutputFileContentsBuilder.headerString)
+        \(OutputFileContentsBuilder.doNotEditString)
 
         extension \(definition.typeChain.dotJoined) {
         \(extensionIndent)func resolve() -> \(definition.outputDefinition.existingType) {
