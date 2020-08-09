@@ -39,6 +39,19 @@ extension TypeName {
     var lazyWrapped: String {
         "Lazy<\(self)>"
     }
+
+    /// Return true if type is wrapped with "Lazy<...>"
+    var isLazy: Bool {
+        hasPrefix("Lazy<") && hasSuffix(">")
+    }
+
+    /// The name to use as the variable name for this type. Made by stripping
+    /// `Key` and `Lazy`, and lowercasing the first character.
+    var variableName: String {
+        var stripped = strippingKeyAndLazyWrapper
+        let first = stripped.removeFirst().lowercased()
+        return "\(first)\(stripped)"
+    }
 }
 
 extension TypeNameChain {
