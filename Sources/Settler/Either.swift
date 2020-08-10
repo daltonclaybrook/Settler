@@ -31,3 +31,27 @@ extension Either {
         }
     }
 }
+
+protocol EitherType {
+    associatedtype L
+    associatedtype R
+    var left: L? { get }
+    var right: R? { get }
+}
+
+extension Either: EitherType {}
+
+extension Array where Element: EitherType {
+    func splitLeftAndRight() -> ([Element.L], [Element.R]) {
+        var allLeft: [Element.L] = []
+        var allRight: [Element.R] = []
+        forEach { element in
+            if let left = element.left {
+                allLeft.append(left)
+            } else if let right = element.right {
+                allRight.append(right)
+            }
+        }
+        return (allLeft, allRight)
+    }
+}

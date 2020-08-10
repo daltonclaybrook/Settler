@@ -4,6 +4,7 @@ final class OutputFileContentsBuilder {
     private static let projectURL = "https://github.com/daltonclaybrook/Settler"
     private static let headerString = "// Generated using Settler \(SettlerVersion.current.value) - \(projectURL)"
     private static let doNotEditString = "// DO NOT EDIT"
+    private static let importSettler = "import SettlerKit"
 
     init(orderedDefinition: OrderedResolverDefinition) {
         self.orderedDefinition = orderedDefinition
@@ -17,13 +18,15 @@ final class OutputFileContentsBuilder {
         let sectionsString = makeStringForAllSections(indent: functionIndent)
         let configsString = makeStringForConfigFunctions(indent: functionIndent)
         let returnString = makeReturnString(indent: functionIndent)
+        let throwsString = areAnyFunctionsThrowing() ? " throws " : " "
 
         return """
         \(OutputFileContentsBuilder.headerString)
         \(OutputFileContentsBuilder.doNotEditString)
+        \(OutputFileContentsBuilder.importSettler)
 
         extension \(definition.typeChain.dotJoined) {
-        \(extensionIndent)func resolve() -> Output {
+        \(extensionIndent)func resolve()\(throwsString)-> Output {
         \(sectionsString)
         \(configsString)
         \(returnString)
@@ -53,9 +56,9 @@ final class OutputFileContentsBuilder {
         guard !definition.configFunctions.isEmpty else { return "" }
 
         let configCallsString = definition.configFunctions.map { function in
-            makeCallString(for: function, indent: indent)
+            "\(indent)\(makeCallString(for: function, indent: indent))"
         }.joined(separator: "\n")
-        return "\(indent)// Configs\n\(configCallsString)"
+        return "\(indent)// Configuration\n\(configCallsString)"
     }
 
     private func makeReturnString(indent: IndentDepth) -> String {
@@ -65,6 +68,10 @@ final class OutputFileContentsBuilder {
         } else {
             return "\(indent)return \(variableType.variableName)"
         }
+    }
+
+    private func areAnyFunctionsThrowing() -> Bool {
+        orderedDefinition.definition.allFunctions.contains(where: \.isThrowing)
     }
 
     private func makeString(for call: FunctionCall, indent: IndentDepth) -> String {
@@ -77,7 +84,8 @@ final class OutputFileContentsBuilder {
             \(indent)}
             """
         } else {
-            return "\(indent)let \(returnVariable) = \(callString)"
+            let tryString = call.definition.isThrowing ? "try " : ""
+            return "\(indent)let \(returnVariable) = \(tryString)\(callString)"
         }
     }
 

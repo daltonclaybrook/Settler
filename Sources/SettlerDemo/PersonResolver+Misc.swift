@@ -29,3 +29,11 @@ extension PersonResolver {
         Pet(name: "Whiskers", age: 3, species: .cat)
     }
 }
+
+// MARK: - Configuration
+
+extension PersonResolver {
+    func configure(whiskers: Key.Whiskers, company: Lazy<Key.DaltonCompany>) {
+        print("configuring...")
+    }
+}

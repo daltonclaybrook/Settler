@@ -49,6 +49,11 @@ extension PersonResolver {
         }
     }
 
+//    func resolveDaltonBirthdate() -> Key.DaltonBirthdate {
+//        let components = DateComponents(year: 1989, month: 9, day: 25)
+//        return Calendar.current.date(from: components)!
+//    }
+
     func resolveDaltonAddress() -> Key.DaltonAddress {
         Address(
             line1: "123 Awesome St",
@@ -59,10 +64,10 @@ extension PersonResolver {
         )
     }
 
-    func resolveDaltonCompany(address: Key.DaltonAddress) -> Key.DaltonCompany {
+    func resolveDaltonCompany(address: Lazy<Key.DaltonAddress>) -> Key.DaltonCompany {
         Company(
             name: "Peloton",
-            address: address,
+            address: address.resolve(),
             industry: .software
         )
     }

@@ -15,6 +15,7 @@ struct DefinitionError: Error {
         case noResolverFunctionForKey
         case noResolverFunctionsWithZeroParams
         case unresolvableDependencies
+        case resolverFunctionCannotBeThrowingIfResultIsUsedLazily
     }
 
     let kind: Kind
@@ -79,6 +80,8 @@ extension DefinitionError.Kind: CustomStringConvertible {
             return "None of the resolver functions could be called because they all depend on other functions"
         case .unresolvableDependencies:
             return "Could not resolve the dependencies of this function. This could be due to a circular dependency chain."
+        case .resolverFunctionCannotBeThrowingIfResultIsUsedLazily:
+            return "This function can throw, but another function accesses this dependency using 'Lazy<...>'. This is not currently supported. If this is a capability you need, consider creating a GitHub issue."
         }
     }
 }
