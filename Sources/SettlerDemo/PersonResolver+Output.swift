@@ -3,9 +3,9 @@
 import SettlerKit
 
 extension PersonResolver {
-    func resolve() throws -> Output {
+    func resolve() -> Output {
         // Resolver phase 1
-        let daltonBirthdate = try resolveDaltonBirthdate()
+        let daltonBirthdate = resolveDaltonBirthdate()
         let daltonAddress = Lazy {
             self.resolveDaltonAddress()
         }
@@ -21,7 +21,7 @@ extension PersonResolver {
         let daltonParents = resolveDaltonParents(steve: steve)
         // Resolver phase 5
         let dalton = resolveDalton(birthdate: daltonBirthdate, address: daltonAddress.resolve(), company: daltonCompany.resolve(), rufus: rufus, whiskers: whiskers, parents: daltonParents)
-        // Configs
+        // Configuration
         configure(whiskers: whiskers, company: daltonCompany)
         return dalton
     }

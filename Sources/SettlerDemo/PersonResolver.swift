@@ -40,19 +40,10 @@ extension PersonResolver {
         )
     }
 
-    func resolveDaltonBirthdate() throws -> Key.DaltonBirthdate {
+    func resolveDaltonBirthdate() -> Key.DaltonBirthdate {
         let components = DateComponents(year: 1989, month: 9, day: 25)
-        if let birthdate = Calendar.current.date(from: components) {
-            return birthdate
-        } else {
-            throw ResolverError.dateError
-        }
+        return Calendar.current.date(from: components)!
     }
-
-//    func resolveDaltonBirthdate() -> Key.DaltonBirthdate {
-//        let components = DateComponents(year: 1989, month: 9, day: 25)
-//        return Calendar.current.date(from: components)!
-//    }
 
     func resolveDaltonAddress() -> Key.DaltonAddress {
         Address(
