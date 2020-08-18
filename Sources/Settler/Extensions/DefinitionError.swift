@@ -14,6 +14,7 @@ struct DefinitionError: Error {
         case duplicateReturnTypesInResolverFunctions
         case noResolverFunctionForKey
         case noResolverFunctionsWithZeroParams
+        case circularResolverDependency(keys: [TypeName])
         case unresolvableDependencies
         case resolverFunctionCannotBeThrowingIfResultIsUsedLazily
     }
@@ -78,6 +79,8 @@ extension DefinitionError.Kind: CustomStringConvertible {
             return "Could not find a resolver function for this key"
         case .noResolverFunctionsWithZeroParams:
             return "None of the resolver functions could be called because they all depend on other functions"
+        case .circularResolverDependency(let keys):
+            return "This function could not be called because of a circular dependency: \(keys.arrowJoined)"
         case .unresolvableDependencies:
             return "Could not resolve the dependencies of this function. This could be due to a circular dependency chain."
         case .resolverFunctionCannotBeThrowingIfResultIsUsedLazily:

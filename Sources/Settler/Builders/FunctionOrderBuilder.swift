@@ -1,6 +1,15 @@
 struct FunctionOrderBuilder {
     static func build(with definition: ResolverDefinition) -> Either<FunctionOrder, [DefinitionError]> {
-        let allCallsOrErrors = makeFunctionCalls(from: definition.resolverFunctions, in: definition)
+        let keysResult = UsedKeysFilter(definition: definition).determineAllUsedResolverKeys()
+        guard case .success(let keys) = keysResult else {
+            let errors = keysResult.failureError.map { [$0] } ?? []
+            return .right(errors)
+        }
+
+        let functionsForType = definition.functionsForType
+        let usedResolverFunctions = keys.usedKeys.compactMap { functionsForType[$0] }
+
+        let allCallsOrErrors = makeFunctionCalls(from: usedResolverFunctions, in: definition)
         guard var allCalls = allCallsOrErrors.left else {
             return .right(allCallsOrErrors.right ?? [])
         }

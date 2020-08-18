@@ -79,4 +79,10 @@ extension ResolverDefinition {
     var allFunctions: [FunctionDefinitionType] {
         resolverFunctions.map(\.value) + configFunctions
     }
+
+    var functionsForType: [TypeName: Located<ResolverFunctionDefinition>] {
+        resolverFunctions.reduce(into: [:]) { result, function in
+            result[function.returnType] = function
+        }
+    }
 }

@@ -54,8 +54,12 @@ extension TypeName {
     }
 }
 
-extension TypeNameChain {
+extension Array where Element == TypeName {
     var dotJoined: TypeName {
         joined(separator: ".")
+    }
+
+    var arrowJoined: String {
+        joined(separator: " → ")
     }
 }
