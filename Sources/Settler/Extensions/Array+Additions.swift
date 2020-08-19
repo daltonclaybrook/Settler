@@ -48,7 +48,7 @@ extension Array {
     }
 }
 
-extension Array where Element == DefinitionError {
+extension Array where Element: XcodeErrorDescription {
     /// Returns the complete error string of an array of definition errors
     var errorString: String {
         map(\.description).joined(separator: "\n")

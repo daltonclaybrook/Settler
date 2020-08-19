@@ -9,7 +9,7 @@ enum TypeNameConstants {
 struct ResolverDefinitionBuilder {
     struct Output {
         let definitions: [ResolverDefinition]
-        let errors: [DefinitionError]
+        let errors: [Located<DefinitionError>]
     }
 
     /// A Resolver must be declared as one of these kinds
@@ -24,7 +24,7 @@ struct ResolverDefinitionBuilder {
             }
         }
 
-        let definitionErrors = try swiftFiles.reduce(into: [DefinitionError]()) { result, filePath in
+        let definitionErrors = try swiftFiles.reduce(into: [Located<DefinitionError>]()) { result, filePath in
             guard let file = File(path: filePath) else { return }
             let structure = try Structure(file: file)
             let fileMembers = structure.dictionary.substructure ?? []
@@ -105,13 +105,13 @@ struct ResolverDefinitionBuilder {
     ///
     /// Members provided to this function should already be confirmed to match the
     /// type chain of the definition. Passing unconfirmed members is a programmer error.
-    private static func update(definition: inout PartialResolverDefinition, withMatchingMembers members: [[String: SourceKitRepresentable]], in file: File) throws -> [DefinitionError] {
+    private static func update(definition: inout PartialResolverDefinition, withMatchingMembers members: [[String: SourceKitRepresentable]], in file: File) throws -> [Located<DefinitionError>] {
         try members.flatMap { member in
             try update(definition: &definition, member: member, in: file)
         }
     }
 
-    private static func update(definition: inout PartialResolverDefinition, member: [String: SourceKitRepresentable], in file: File) throws -> [DefinitionError] {
+    private static func update(definition: inout PartialResolverDefinition, member: [String: SourceKitRepresentable], in file: File) throws -> [Located<DefinitionError>] {
         if let kind = member.declarationKind, declarationKinds.contains(kind) {
             if definition.declarationFile != nil {
                 fatalError("Found multiple declarations for the Resolver \(definition.typeChain.dotJoined). This should never happen.")
@@ -120,7 +120,7 @@ struct ResolverDefinitionBuilder {
         }
 
         let typeMembers = member.substructure ?? []
-        return try typeMembers.flatMap { member -> [DefinitionError] in
+        return try typeMembers.flatMap { member -> [Located<DefinitionError>] in
             guard let name = member.name,
                 let kind = member.declarationKind
                 else { return [] }
@@ -137,9 +137,9 @@ struct ResolverDefinitionBuilder {
         }
     }
 
-    private static func updateKey(for definition: inout PartialResolverDefinition, kind: SwiftDeclarationKind, enumStructure: [String: SourceKitRepresentable], file: File) -> [DefinitionError] {
+    private static func updateKey(for definition: inout PartialResolverDefinition, kind: SwiftDeclarationKind, enumStructure: [String: SourceKitRepresentable], file: File) -> [Located<DefinitionError>] {
         guard kind == .enum else {
-            return [DefinitionError(kind: .keyIsNotAnEnum, file: file, offset: enumStructure.offset)]
+            return [DefinitionError.keyIsNotAnEnum.located(in: file, offset: enumStructure.offset)]
         }
 
         let aliasStructures = enumStructure.substructure ?? []
@@ -147,7 +147,7 @@ struct ResolverDefinitionBuilder {
             TypeAliasDefinitionBuilder
                 .buildFrom(aliasStructure: structure, in: file)
                 .mapError { error in
-                    DefinitionError(kind: error.keyMemberErrorKind, file: file, offset: structure.offset)
+                    error.keyMemberError.located(in: file, offset: structure.offset)
                 }
         }
 
@@ -156,24 +156,26 @@ struct ResolverDefinitionBuilder {
         return typeAliasResults.compactMap(\.failureError)
     }
 
-    private static func updateOutput(for definition: inout PartialResolverDefinition, kind: SwiftDeclarationKind, outputStructure: [String: SourceKitRepresentable], file: File) -> [DefinitionError] {
+    private static func updateOutput(for definition: inout PartialResolverDefinition, kind: SwiftDeclarationKind, outputStructure: [String: SourceKitRepresentable], file: File) -> [Located<DefinitionError>] {
         switch TypeAliasDefinitionBuilder.buildFrom(aliasStructure: outputStructure, in: file) {
         case .success(let output) where output.existingType.isAcceptableResolverFunctionReturnType:
             definition.outputDefinition = output
             return []
         case .success(let output):
-            return [DefinitionError(kind: .outputIsNotAKeyMember, located: output)]
+            return [output.mapConstant(.outputIsNotAKeyMember)]
         case .failure(let error):
-            return [DefinitionError(kind: error.outputErrorKind, file: file, offset: outputStructure.offset)]
+            return [error.outputError.located(in: file, offset: outputStructure.offset)]
         }
     }
 
-    private static func updateFunctions(for definition: inout PartialResolverDefinition, functionName: String, functionStructure: [String: SourceKitRepresentable], file: File) throws -> [DefinitionError] {
+    private static func updateFunctions(for definition: inout PartialResolverDefinition, functionName: String, functionStructure: [String: SourceKitRepresentable], file: File) throws -> [Located<DefinitionError>] {
         guard let nameOffset = functionStructure.nameOffset,
             let nameLength = functionStructure.nameLength,
             let bodyOffset = functionStructure.bodyOffset else {
-                let error = DefinitionError(kind: .invalidFunction, file: file, offset: functionStructure.offset)
-                return [error]
+                return [
+                    DefinitionError.invalidFunction
+                        .located(in: file, offset: functionStructure.offset)
+                ]
         }
 
         let returnType = functionStructure.typeName
@@ -210,7 +212,7 @@ struct ResolverDefinitionBuilder {
     /// - Key contains alias that does not have a resolver function
     /// - Key contains alias that is returned by more than one resolver function
     /// - Resolver function contains parameters not found in the Key
-    private static func finalizeDefinition(_ definition: PartialResolverDefinition) -> Either<ResolverDefinition, [DefinitionError]> {
+    private static func finalizeDefinition(_ definition: PartialResolverDefinition) -> Either<ResolverDefinition, [Located<DefinitionError>]> {
         guard let key = definition.keyDefinition,
             let output = definition.outputDefinition else {
                 // Though these are error states, they will be caught by the
@@ -219,13 +221,14 @@ struct ResolverDefinitionBuilder {
                 return .right([])
         }
         guard let declarationFilePath = definition.declarationFile?.file.path else {
-            let error = DefinitionError(kind: .cantFindDeclarationFile, located: definition.adoptionFile)
-            return .right([error])
+            return .right([
+                definition.adoptionFile.mapConstant(.cantFindDeclarationFile)
+            ])
         }
 
         var resolverFunctions: [Located<ResolverFunctionDefinition>] = []
         var configFunctions: [Located<ConfigFunctionDefinition>] = []
-        var functionErrors: [DefinitionError] = []
+        var functionErrors: [Located<DefinitionError>] = []
         definition.functions.forEach { locatedFunction in
             let function = locatedFunction.value
             let containsNonKeyParam = function.parameters.contains { param in
@@ -235,8 +238,7 @@ struct ResolverDefinitionBuilder {
             if let returnType = function.returnType, returnType.isAcceptableResolverFunctionReturnType {
                 // This is considered a resolver function
                 guard !containsNonKeyParam else {
-                    let error = DefinitionError(kind: .resolverFunctionContainsNonKeyParam, located: locatedFunction)
-                    functionErrors.append(error)
+                    functionErrors.append(locatedFunction.mapConstant(.resolverFunctionContainsNonKeyParam))
                     return
                 }
 
@@ -257,11 +259,12 @@ struct ResolverDefinitionBuilder {
         }
 
         // Report errors if two or more resolvers have the same return type
-        let duplicateFunctionErrors = resolverFunctions.flatMapEachCombination { first, second -> [DefinitionError] in
+        let duplicateFunctionErrors = resolverFunctions.flatMapEachCombination { first, second -> [Located<DefinitionError>] in
             if first.returnType == second.returnType {
-                let error1 = DefinitionError(kind: .duplicateReturnTypesInResolverFunctions, located: first)
-                let error2 = DefinitionError(kind: .duplicateReturnTypesInResolverFunctions, located: second)
-                return [error1, error2]
+                return [
+                    first.mapConstant(.duplicateReturnTypesInResolverFunctions),
+                    second.mapConstant(.duplicateReturnTypesInResolverFunctions)
+                ]
             } else {
                 return []
             }
@@ -269,9 +272,9 @@ struct ResolverDefinitionBuilder {
 
         // Report errors if the Key contains aliases that are not being resolved
         let allReturnTypes = Set(resolverFunctions.map(\.returnType.strippingKeyAndLazyWrapper))
-        let missingFunctionErrors = key.typeAliases.compactMap { alias -> DefinitionError? in
+        let missingFunctionErrors = key.typeAliases.compactMap { alias -> Located<DefinitionError>? in
             if !allReturnTypes.contains(alias.name) {
-                return DefinitionError(kind: .noResolverFunctionForKey, located: alias)
+                return alias.mapConstant(.noResolverFunctionForKey)
             } else {
                 return nil
             }

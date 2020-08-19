@@ -38,8 +38,8 @@ struct TypeAliasDefinitionBuilder {
 }
 
 extension TypeAliasDefinitionBuilder.TypeAliasError {
-    /// The error kind when this error occurs inside of the Key definition
-    var keyMemberErrorKind: DefinitionError.Kind {
+    /// The error when this error occurs inside of the Key definition
+    var keyMemberError: DefinitionError {
         switch self {
         case .notATypeAlias:
             return .keyMemberIsNotATypeAlias
@@ -48,8 +48,8 @@ extension TypeAliasDefinitionBuilder.TypeAliasError {
         }
     }
 
-    /// The error kind when this error occurs on the Output definition
-    var outputErrorKind: DefinitionError.Kind {
+    /// The error when this error occurs on the Output definition
+    var outputError: DefinitionError {
         switch self {
         case .notATypeAlias:
             return .outputIsNotATypeAlias

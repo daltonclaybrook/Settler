@@ -26,7 +26,7 @@ final class UsedKeysFilter {
 
     /// Returns a struct containing the set of all used keys and the set of all unused
     /// keys within a Resolver definition.
-    func determineAllUsedResolverKeys() -> Result<UsedKeysResult, DefinitionError> {
+    func determineAllUsedResolverKeys() -> Result<UsedKeysResult, Located<DefinitionError>> {
         let allTypes = Set(functionsForType.keys)
         let outputType = definition.outputDefinition.existingType
         return determineAllTypeDependencies(of: outputType)
@@ -36,7 +36,8 @@ final class UsedKeysFilter {
                 return UsedKeysResult(usedKeys: usedKeys, unusedKeys: unusedKeys)
             }
             .mapError { error in
-                DefinitionError(kind: .circularResolverDependency(keys: error.keys), located: error.function)
+                error.function
+                    .mapConstant(.circularResolverDependency(keys: error.keys))
             }
     }
 

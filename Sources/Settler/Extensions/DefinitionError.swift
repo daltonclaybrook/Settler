@@ -1,58 +1,24 @@
 import SourceKittenFramework
 
-struct DefinitionError: Error {
-    enum Kind {
-        case keyIsNotAnEnum
-        case keyMemberIsNotATypeAlias
-        case invalidTypeAlias
-        case invalidFunction
-        case outputIsNotATypeAlias
-        case outputIsNotAKeyMember
-        case unexpectedSyntaxElement
-        case cantFindDeclarationFile
-        case resolverFunctionContainsNonKeyParam
-        case duplicateReturnTypesInResolverFunctions
-        case noResolverFunctionForKey
-        case noResolverFunctionsWithZeroParams
-        case circularResolverDependency(keys: [TypeName])
-        case unresolvableDependencies
-        case resolverFunctionCannotBeThrowingIfResultIsUsedLazily
-    }
-
-    let kind: Kind
-    let filePath: String?
-    let line: Int
-    let character: Int
+enum DefinitionError: Error {
+    case keyIsNotAnEnum
+    case keyMemberIsNotATypeAlias
+    case invalidTypeAlias
+    case invalidFunction
+    case outputIsNotATypeAlias
+    case outputIsNotAKeyMember
+    case unexpectedSyntaxElement
+    case cantFindDeclarationFile
+    case resolverFunctionContainsNonKeyParam
+    case duplicateReturnTypesInResolverFunctions
+    case noResolverFunctionForKey
+    case noResolverFunctionsWithZeroParams
+    case circularResolverDependency(keys: [TypeName])
+    case unresolvableDependencies
+    case resolverFunctionCannotBeThrowingIfResultIsUsedLazily
 }
 
 extension DefinitionError: CustomStringConvertible {
-    init(kind: Kind, file: File, offset: Int64?) {
-        self.kind = kind
-        self.filePath = file.path
-        let byteOffset = ByteCount(offset ?? 0)
-        let location = file.stringView.lineAndCharacter(forByteOffset: byteOffset)
-        self.line = (location?.line ?? 0)
-        self.character = (location?.character ?? 0)
-    }
-
-    init<T>(kind: Kind, located: Located<T>) {
-        self.init(kind: kind, file: located.file, offset: located.offset)
-    }
-
-    /// Inspired by SwiftLint
-    var description: String {
-        // Xcode likes warnings and errors in the following format:
-        // {full_path_to_file}{:line}{:character}: {error,warning}: {content}
-        let fileString = filePath ?? "<nopath>"
-        let lineString = ":\(line)"
-        let charString = ":\(character)"
-        let errorString = ": error"
-        let contentString = ": \(kind.description)"
-        return [fileString, lineString, charString, errorString, contentString].joined()
-    }
-}
-
-extension DefinitionError.Kind: CustomStringConvertible {
     var description: String {
         switch self {
         case .keyIsNotAnEnum:
@@ -86,6 +52,12 @@ extension DefinitionError.Kind: CustomStringConvertible {
         case .resolverFunctionCannotBeThrowingIfResultIsUsedLazily:
             return "This function can throw, but another function accesses this dependency using 'Lazy<...>'. This is not currently supported. If this is a capability you need, consider creating a GitHub issue."
         }
+    }
+}
+
+extension DefinitionError {
+    func located(in file: File, offset: Int64? = nil) -> Located<DefinitionError> {
+        Located(value: self, file: file, offset: offset)
     }
 }
 

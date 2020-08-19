@@ -1,5 +1,5 @@
 struct FunctionOrderBuilder {
-    static func build(with definition: ResolverDefinition) -> Either<FunctionOrder, [DefinitionError]> {
+    static func build(with definition: ResolverDefinition) -> Either<FunctionOrder, [Located<DefinitionError>]> {
         let keysResult = UsedKeysFilter(definition: definition).determineAllUsedResolverKeys()
         guard case .success(let keys) = keysResult else {
             let errors = keysResult.failureError.map { [$0] } ?? []
@@ -20,7 +20,8 @@ struct FunctionOrderBuilder {
         }
 
         guard !zeroParameters.isEmpty else {
-            let error = DefinitionError(kind: .noResolverFunctionsWithZeroParams, located: definition.adoptionFile)
+            let error = definition.adoptionFile
+                .mapConstant(DefinitionError.noResolverFunctionsWithZeroParams)
             return .right([error])
         }
 
@@ -42,7 +43,7 @@ struct FunctionOrderBuilder {
         }
     }
 
-    private static func makeFunctionCalls(from functions: [Located<ResolverFunctionDefinition>], in definition: ResolverDefinition) -> Either<[Located<FunctionCall>], [DefinitionError]> {
+    private static func makeFunctionCalls(from functions: [Located<ResolverFunctionDefinition>], in definition: ResolverDefinition) -> Either<[Located<FunctionCall>], [Located<DefinitionError>]> {
         let results = functions.map { makeFunctionCall(from: $0, in: definition) }
         let (calls, errors) = results.splitLeftAndRight()
         if errors.isEmpty {
@@ -52,11 +53,14 @@ struct FunctionOrderBuilder {
         }
     }
 
-    private static func makeFunctionCall(from function: Located<ResolverFunctionDefinition>, in definition: ResolverDefinition) -> Either<Located<FunctionCall>, DefinitionError> {
+    private static func makeFunctionCall(from function: Located<ResolverFunctionDefinition>, in definition: ResolverDefinition) -> Either<Located<FunctionCall>, Located<DefinitionError>> {
         let isLazy = functionCallIsLazy(for: function.value, in: definition)
         guard !function.isThrowing || !isLazy else {
-            let error = DefinitionError(kind: .resolverFunctionCannotBeThrowingIfResultIsUsedLazily, located: function)
-            return .right(error)
+            return .right(
+                function.mapConstant(
+                    .resolverFunctionCannotBeThrowingIfResultIsUsedLazily
+                )
+            )
         }
         let call = function.map { FunctionCall(definition: $0, isLazy: isLazy) }
         return .left(call)
@@ -66,7 +70,7 @@ struct FunctionOrderBuilder {
         initial: FunctionSection,
         remainingCalls: [Located<FunctionCall>],
         definition: ResolverDefinition
-    ) -> Either<[FunctionSection], [DefinitionError]> {
+    ) -> Either<[FunctionSection], [Located<DefinitionError>]> {
         var remainingCalls = remainingCalls
         var allSections = [initial]
         while !remainingCalls.isEmpty {
@@ -80,10 +84,11 @@ struct FunctionOrderBuilder {
             }
 
             if calls.isEmpty {
-                let errors = remainingCalls.map { call in
-                    DefinitionError(kind: .unresolvableDependencies, located: call)
-                }
-                return .right(errors)
+                return .right(
+                    remainingCalls.map {
+                        $0.mapConstant(.unresolvableDependencies)
+                    }
+                )
             } else {
                 let section = FunctionSection(calls: calls)
                 allSections.append(section)
