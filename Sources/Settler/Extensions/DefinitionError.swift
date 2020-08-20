@@ -33,7 +33,7 @@ extension DefinitionError: CustomStringConvertible {
         case .invalidFunction:
             return "The function is invalid. See the docs."
         case .outputIsNotATypeAlias:
-            return "Output must by a type-alias"
+            return "Output must be a type-alias"
         case .outputIsNotAKeyMember:
             return "Output must be a member of 'Key'"
         case .unexpectedSyntaxElement:
