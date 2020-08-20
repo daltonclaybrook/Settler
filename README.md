@@ -2,26 +2,59 @@
 
 ## The basics
 
-When using Settler, you are responsible for defining **Resolvers**. A Resolver is a type that is responsible for creating a _single complex object_ from a collection of dependencies, or `Keys`. The Resolver protocol has only two associated type requirements: `Key` and `Output`. Your `Output` is a type-alias to the type of the object you want your Resolver to ultimately build. Your `Key` is a collection of type-aliases to dependency types that may be required to build your `Output`. See [Resolver.md](https://github.com/daltonclaybrook/Settler/blob/main/Resolver.md) for an in-depth Resolver implementation guide.
+When using Settler, you are responsible for defining **Resolvers**. A Resolver is a type that is responsible for creating a _single complex object_ from a collection of dependencies, or `Keys`.
+
+The Resolver protocol has only two associated type requirements: `Key` and `Output`. Your `Output` is a type-alias to the type of the object you want your Resolver to ultimately build. Your `Key` is a collection of type-aliases to dependency types that may be required to build your `Output`.
+
+Each member of your `Key` needs a corresponding Resolver function. You specify dependencies of your `Key` member simply by defining parameters in your resolver function. Each parameter must also be a member of `Key`. The following is a small but complete example of a Resolver:
+
+```swift
+struct PlayerResolver: Resolver {
+    typealias Output = Key.MusicPlayer
+
+    enum Key {
+        typealias SongData = Data
+        typealias MusicPlayer = AVAudioPlayer
+    }
+
+    func resolveSongData() -> Key.SongData {
+        Data(...)
+    }
+
+    func resolvePlayer(songData: Key.SongData) throws -> Key.MusicPlayer {
+        try AVAudioPlayer(data: songData)
+    }
+}
+```
+
+This is a trivial example which on its own may not warrant a special "Resolver," but as we'll see below in the "Who is Settler For?" section, a Resolver can be particularly helpful in the development and maintenance of _large_, _complex_, and _interconnected_ dependency graphs.
+
+See [Resolver.md](https://github.com/daltonclaybrook/Settler/blob/main/Resolver.md) for an in-depth Resolver implementation guide.
+
+See the [SettlerDemo directory](https://github.com/daltonclaybrook/Settler/tree/main/Sources/SettlerDemo) for a more detailed example of a Resolver.
 
 ## Compiler magic
 
-The power (and magic ✨) of Settler lies in it's ability to parse your Resolvers in-line with the Swift compiler and report errors directly in Xcode as if it were part of the compiler itself. Once configured as a Run Script build phase in Xcode, Settler can report errors in your `Output` and `Key` types, whether your resolver functions contain invalid parameters, whether any dependencies are missing a corresponding function (or are duplicated), whether you have a circular dependency, and many more. Rest assured that if you see no reported errors in Xcode, your Resolver is correct.
+The power (and magic ✨) of Settler lies in its ability to parse your Resolvers in-line with the Swift compiler and report errors directly in Xcode as if it were part of the compiler itself.
+
+By defining each of your dependencies as a function, and by using `Key` members as inputs/outputs of those functions, Settler is able to resolve your entire dependency graph in the correct order, ignoring types that are unused, lazily initializing dependencies where necessary, and reporting errors when things are wrong or missing.
+
+Once configured as a Run Script build phase in Xcode, Settler can report errors in your `Output` and `Key` types, whether your resolver functions contain invalid parameters, whether any dependencies are missing a corresponding function (or are duplicated), whether you have a circular dependency, and many more. Rest assured that if you see no reported errors in Xcode, your Resolver is correct.
 
 ## Who is Settler for?
 
-A Swift developers, most of the objects we instantiate are fairly lightweight, requiring only a few arguments and minimal configuration, if any. e.g.
+As Swift developers, most of the objects we instantiate are fairly lightweight, requiring only a few arguments and minimal configuration, if any. e.g.
 
 ```swift
 let stackView = UIStackView(arrangedSubviews: [titleLabel, iconView, button])
 stackView.axis = .vertical
 ```
 
-But occasionally, we are required to create objects that are quite complex. These types might have a high number of initializer parameters. They may own tens or even hundreds of child objects, all of which need to be instantiated and injected. These objects (or their dependencies) may have complex configuration requirements. In these cases, we tend to reach for **Factories** or **Builders**. These are helpful types that encapsulate the logic of creating and configuring all these objects, and expose only a few public methods for producing the single desired complex object.
+But occasionally, we are required to create objects that are quite complex. These types might have a high number of initializer parameters. They may own tens or even hundreds of child objects, all of which need to be instantiated and injected. These objects (or their dependencies) may have complex configuration requirements. In these cases, we tend to reach for **Factories** or **Builders**. These are helpful types that encapsulate the logic of creating and configuring all these objects and expose only a few public methods for producing the single desired complex object.
 
 But Factories can get messy _fast_. They are susceptible to tight-coupling. They can easily violate more than one of the [SOLID](https://en.wikipedia.org/wiki/SOLID) design principles including the Single-responsibility principle and the Dependency inversion principle. They can easily violate your linter rules for function length or file length because of complex configuration requirements. Team members will tend to avoid working in these types as they are difficult to comprehend and contextualize, and over time, these types may be disproportionally susceptible to [code rot](https://en.wikipedia.org/wiki/Software_rot).
 
-Settler solves these problems by replacing your Factory with a **Resolver**. With a Resolver, you can break your Factory up into a flat collection of functions, each of which has a single responsibility: to build an object. A Resolver can be divided into many separate extensions which are not required to be co-located. It may actually be helpful to co-locate a Resolver extension with the object(s) it is responsible for creating, for example:
+Settler solves these problems by replacing your Factory with a **Resolver**. With a Resolver, you can break your Factory up into a flat collection of functions, each of which has a single responsibility: to build an object. A Resolver can be divided into many separate extensions that are not required to be co-located. It may actually be helpful to co-locate a Resolver extension with the object(s) it is responsible for creating, for example:
 
 ```swift
 class MyAPIService {
