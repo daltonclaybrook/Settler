@@ -1,4 +1,4 @@
-**Settler** is a metaprogramming tool for Swift used to resolve complex dependency graphs in a way that encourages code separation and cleanliness while maintaining the safety guarantees of the compiler. If an object in your resolver cannot be resolved due to a missing or circular dependency, Settler will find it and bottom out compilation of your program.
+**Settler** is a Swift metaprogramming tool used to resolve complex dependency graphs in a way that encourages code separation and cleanliness while maintaining the safety guarantees of the compiler. If an object in your resolver cannot be resolved due to a missing or circular dependency, Settler will find it and bottom out compilation of your program.
 
 ## The basics
 
