@@ -4,7 +4,7 @@
 
 When using Settler, you are responsible for defining **Resolvers**. A Resolver is a type that is responsible for creating a _single complex object_ from a collection of dependencies, or `Keys`.
 
-The Resolver protocol has only two associated type requirements: `Key` and `Output`. Your `Output` is a type-alias to the type of the object you want your Resolver to ultimately build. Your `Key` is a collection of type-aliases to dependency types that may be required to build your `Output`.
+The Resolver protocol has only two associated type requirements: `Key` and `Output`. Your `Output` is a type-alias to the type of the object you want your Resolver to ultimately build. Your `Key` is a collection of type-aliases for all the objects your Resolver is capable of building, including your `Output`. Most of the `Key` members are direct or indirect dependencies of your `Output` type.
 
 Each member of your `Key` needs a corresponding Resolver function. You specify dependencies of your `Key` member simply by defining parameters in your resolver function. Each parameter must also be a member of `Key`. The following is a small but complete example of a Resolver:
 
