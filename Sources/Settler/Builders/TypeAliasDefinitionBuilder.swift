@@ -1,6 +1,8 @@
 import Foundation
 import SourceKittenFramework
 
+/// Used to parse a type-alias SourceKitten structure and produce a type-alias
+/// definition
 struct TypeAliasDefinitionBuilder {
     enum TypeAliasError: Error {
         case notATypeAlias

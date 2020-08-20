@@ -1,3 +1,6 @@
+/// Types that adopt this protocol can produce errors that are displayed
+/// inside of Xcode in a particular file, on a specific line and with a
+/// character offset
 protocol XcodeErrorDescription: CustomStringConvertible {
     var filePath: String? { get }
     var errorString: String { get }

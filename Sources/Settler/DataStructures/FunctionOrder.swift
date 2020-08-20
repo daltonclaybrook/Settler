@@ -1,3 +1,5 @@
+/// Represents a call of a particular Resolver function inside of the
+/// generated `resolve()` method of a Resolver
 struct FunctionCall {
     let definition: ResolverFunctionDefinition
     let isLazy: Bool

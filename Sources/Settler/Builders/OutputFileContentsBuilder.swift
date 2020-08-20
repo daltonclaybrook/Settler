@@ -1,3 +1,6 @@
+/// Used to produce the string contents of a generated `Resolver+Output.swift`
+/// file. This process is decoupled from the process of actually determining
+/// the function order, which is handled by `FunctionOrderBuilder`.
 final class OutputFileContentsBuilder {
     let orderedDefinition: OrderedResolverDefinition
 

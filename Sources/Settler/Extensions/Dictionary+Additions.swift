@@ -1,5 +1,6 @@
 import SourceKittenFramework
 
+/// Helpers for accessing elements within a SourceKitten structure
 extension Dictionary where Key == String, Value == SourceKitRepresentable {
     var name: String? {
         self[SwiftDocKey.name.rawValue] as? String

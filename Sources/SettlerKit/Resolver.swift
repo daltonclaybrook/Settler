@@ -4,7 +4,7 @@
 /// implement both of the requirements described below, you'll need to make sure your project is configured
 /// to use the Settler run-script build phase in Xcode (See the docs on configuration). Once this phase has
 /// been configured, you should start seeing build errors in your Resolver for keys that are missing a
-/// corresponding _resolver function_. A resolver function looks like this:
+/// corresponding _Resolver function_. A Resolver function looks like this:
 /// ```
 /// func resolvePlayer(songData: Key.SongData) -> Key.MusicPlayer {
 ///     AVAudioPlayer(data: songData)
@@ -13,7 +13,7 @@
 /// Resolver functions have several requirements that are all documented in
 /// [Resolver.md](https://github.com/daltonclaybrook/Settler/blob/main/Resolver.md)
 ///
-/// Once each of your keys has a corresponding resolver function, your Xcode project will build successfully.
+/// Once each of your keys has a corresponding Resolver function, your Xcode project will build successfully.
 /// Look for a file called `[YourResolver]+Output.swift` in the same directory where your Resolver
 /// is declared and add it to your Xcode project. The file contains an extension on your Resolver with a single
 /// function:

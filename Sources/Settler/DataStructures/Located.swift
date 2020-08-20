@@ -1,5 +1,7 @@
 import SourceKittenFramework
 
+/// Represents an object that has a corresponding location in a file,
+/// such as a function definition.
 @dynamicMemberLookup
 struct Located<Value> {
     let value: Value

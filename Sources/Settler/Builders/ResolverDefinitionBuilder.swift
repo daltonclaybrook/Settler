@@ -6,6 +6,8 @@ enum TypeNameConstants {
     static let output = "Output"
 }
 
+/// Used to parse all Swift files in the Settler sources path and produce
+/// definitions for every Resolver found.
 struct ResolverDefinitionBuilder {
     struct Output {
         let definitions: [ResolverDefinition]
@@ -198,7 +200,7 @@ struct ResolverDefinitionBuilder {
             return tokenString == "throws"
         }
 
-        // Only create a resolver function if there are no errors
+        // Only create a Resolver function if there are no errors
         let function = PartialFunctionDefinition(name: functionName, parameters: parameters, returnType: returnType, isThrowing: isThrowingFunction)
         let locatedFunction = Located(value: function, file: file, offset: functionStructure.offset)
         definition.functions.append(locatedFunction)
@@ -209,8 +211,8 @@ struct ResolverDefinitionBuilder {
     /// and all source files have been parsed.
     ///
     /// These errors include:
-    /// - Key contains alias that does not have a resolver function
-    /// - Key contains alias that is returned by more than one resolver function
+    /// - Key contains alias that does not have a Resolver function
+    /// - Key contains alias that is returned by more than one Resolver function
     /// - Resolver function contains parameters not found in the Key
     private static func finalizeDefinition(_ definition: PartialResolverDefinition) -> Either<ResolverDefinition, [Located<DefinitionError>]> {
         guard let key = definition.keyDefinition,
@@ -236,7 +238,7 @@ struct ResolverDefinitionBuilder {
             }
 
             if let returnType = function.returnType, returnType.isAcceptableResolverFunctionReturnType {
-                // This is considered a resolver function
+                // This is considered a Resolver function
                 guard !containsNonKeyParam else {
                     functionErrors.append(locatedFunction.mapConstant(.resolverFunctionContainsNonKeyParam))
                     return
@@ -258,7 +260,7 @@ struct ResolverDefinitionBuilder {
             // non-`Key` return types.
         }
 
-        // Report errors if two or more resolvers have the same return type
+        // Report errors if two or more Resolvers have the same return type
         let duplicateFunctionErrors = resolverFunctions.flatMapEachCombination { first, second -> [Located<DefinitionError>] in
             if first.returnType == second.returnType {
                 return [
