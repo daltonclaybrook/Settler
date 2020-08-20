@@ -40,3 +40,14 @@ extension MyResolver {
 At this point, you might be asking yourself, "Can't I do all of this on my own?" The answer is, "Absolutely!" Once you've completely built and validated your Resolver and generated your Resolver output function, what you're left with is plain ol' Swift code. This is code you could have written yourself without the help of Settler. You could even remove Settler from your project completely at this point and your Resolver would continue to function properly. But if you choose to keep Settler as an integrated part of your build pipeline, what you'll get is what you had all along while building your Resolver: compiler-level enforcement of the _Settler methodology_.
 
 In addition to being a neat tool, Settler is a software methodology. It's a different way of thinking about building Factories for complex object graphs. Settler helps you maintain loose-coupling of components, it encourages you to think of your dependencies as pure functions. It lets you specify your configuration requirements declaratively. It even simplifies _lazy_ object creation when runtime circumstances influence the need for a particular dependency. Even if you choose not to implement Settler in your application, it might still be worth your time to understand the problem it solves and how it works.
+
+## Licence
+
+Settler is available under the MIT license. See [LICENSE](https://github.com/daltonclaybrook/Settler/blob/main/LICENSE) for more information.
+
+## Attributions
+
+This tool is powered by:
+
+* [SourceKitten](https://github.com/jpsim/SourceKitten) - An adorable little framework and command line tool for interacting with SourceKit.
+* [Swift Argument Parser](https://github.com/apple/swift-argument-parser) - Straightforward, type-safe argument parsing for Swift.
