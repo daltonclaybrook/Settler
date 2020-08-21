@@ -2,7 +2,7 @@
 
 ## The basics
 
-When using Settler, you define **resolvers**. A resolver is a type responsible for creating a _single type_ from a collection of dependencies, or `Keys`.
+When using Settler, you define **resolvers**. A resolver is a type responsible for creating a _single complex object_ from a collection of dependencies, or `Keys`.
 
 The `Resolver` protocol has two associated types: `Key` and `Output`. Your `Output` is a type-alias to the type of the object you want your resolver to ultimately build. `Key` is a collection of type-aliases — in the form of a caseless enumeration — for the types your resolver is capable of building, including `Output`. Most of the `Key` members are direct or indirect dependencies of your final `Output` type.
 
@@ -37,9 +37,9 @@ See the [SettlerDemo directory](https://github.com/daltonclaybrook/Settler/tree/
 
 The power (and magic ✨) of Settler lies in its ability to parse your resolvers alongside the Swift compiler and report errors directly in Xcode as if it were part of the toolchain itself.
 
-By defining your dependencies as a function, and by using `Key` members as inputs and outputs of those functions, Settler is able to resolve your dependency graph in the correct order, ignoring types that are unused, lazily initializing dependencies where necessary, and reporting errors when things aren’t quite right.
+By defining each dependency as a function, and by using `Key` members as inputs and outputs of those functions, Settler is able to resolve your dependency graph in the correct order, ignoring types that are unused, lazily initializing dependencies where necessary, and reporting errors when things aren’t quite right.
 
-Once configured as a Run Script build phase in Xcode, Settler can report errors in your `Output` and `Key` types, whether your resolver functions contain invalid parameters, whether any dependencies are missing their corresponding function (or are duplicated), whether there’s a circular dependency, and much more. Rest assured that if you see no reported errors, your `Resolver` implrementation is correct.
+Once configured as a Run Script build phase in Xcode, Settler can report errors in your `Output` and `Key` types, whether your resolver functions contain invalid parameters, whether any dependencies are missing their corresponding function (or are duplicated), whether there’s a circular dependency, and much more. Rest assured that if you see no reported errors, your `Resolver` implementation is correct.
 
 ## Who is Settler for?
 
@@ -70,7 +70,7 @@ extension MyResolver {
 
 ## Settler as a methodology
 
-At this point, you might be asking yourself, “Can’t I do all of this on my own?” The answer is, “Absolutely!” Once you've built and validated your Resolver and generated your Resolver output function, what you’re left with is plain ol’ Swift code. This is code you could have written yourself without the help of Settler. You could even remove Settler from your project at this point and your resolver would continue to function properly. But if you choose to keep Settler as an integrated part of your build pipeline, what you’ll get is what you had all along while building your Resolver: compiler-level enforcement of the _Settler methodology_.
+At this point, you might be asking yourself, “Can’t I do all of this on my own?” The answer is, “Absolutely!” Once you've built and validated your resolver and generated your resolver output function, what you’re left with is plain ol’ Swift code. This is code you could have written yourself without the help of Settler. You could even remove Settler from your project at this point and your resolver would continue to function properly. But if you choose to keep Settler as an integrated part of your build pipeline, what you’ll get is what you had all along while building your resolver: compiler-level enforcement of the _Settler methodology_.
 
 In addition to being a neat tool, Settler is a software methodology. It’s a different way of thinking about building factories for complex object graphs. Settler helps you maintain loose coupling of components, it encourages you to think of your dependencies as pure functions. It lets you specify configuration requirements declaratively. It even simplifies _lazy_ object creation when runtime characteristics determine the need for a particular dependency. Even if you choose not to bring Settler into your application, it’s still the worth the time to understand this approach and how it works, generally.
 
