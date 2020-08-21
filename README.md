@@ -74,7 +74,7 @@ At this point, you might be asking yourself, “Can’t I do all of this on my o
 
 In addition to being a neat tool, Settler is a software methodology. It’s a different way of thinking about building factories for complex object graphs. Settler helps you maintain loose coupling of components, it encourages you to think of your dependencies as pure functions. It lets you specify configuration requirements declaratively. It even simplifies _lazy_ object creation when runtime characteristics determine the need for a particular dependency. Even if you choose not to bring Settler into your application, it’s still the worth the time to understand this approach and how it works, generally.
 
-## Licence
+## License
 
 Settler is available under the MIT license. See [LICENSE](https://github.com/daltonclaybrook/Settler/blob/main/LICENSE) for more information.
 
