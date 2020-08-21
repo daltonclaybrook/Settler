@@ -27,7 +27,7 @@ struct PlayerResolver: Resolver {
 }
 ```
 
-This is a trivial example which on its own may not warrant a special “resolver,” but as we’ll see below in the “Who is Settler for?” section, a resolver can be helpful in the development and maintenance of large and dense dependency graphs.
+>Note: This is a trivial example which on its own may not warrant a special “resolver,” but as we’ll see below in the “Who is Settler for?” section, a resolver can be helpful in the development and maintenance of large and dense dependency graphs.
 
 See [Resolver.md](https://github.com/daltonclaybrook/Settler/blob/main/Resolver.md) for an in-depth `Resolver` implementation guide.
 
