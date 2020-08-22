@@ -6,6 +6,22 @@ enum TypeNameConstants {
     static let output = "Output"
 }
 
+enum FilePathOrContents {
+    case filePath(String)
+    case contents(String)
+}
+
+extension FilePathOrContents {
+    var file: File? {
+        switch self {
+        case .filePath(let path):
+            return File(path: path)
+        case .contents(let contents):
+            return File(contents: contents)
+        }
+    }
+}
+
 /// Used to parse all Swift files in the Settler sources path and produce
 /// definitions for every Resolver found.
 public struct ResolverDefinitionBuilder {
@@ -17,17 +33,26 @@ public struct ResolverDefinitionBuilder {
     /// A Resolver must be declared as one of these kinds
     private static let declarationKinds: Set<SwiftDeclarationKind> = [.class, .struct, .enum]
 
+    /// Parse all provided Swift files and produce definitions for any Resolvers
+    /// found. If a Resolver implementation contains errors, those are returned
+    /// instead of the definition.
     public static func buildWith(swiftFiles: [String]) throws -> Output {
-        var partialDefinitions = try swiftFiles.flatMap { filePath -> [PartialResolverDefinition] in
-            guard let file = File(path: filePath) else { return [] }
+        let paths = swiftFiles.map(FilePathOrContents.filePath)
+        return try buildWith(pathsOrContents: paths)
+    }
+
+    /// This function has internal access control for testing
+    static func buildWith(pathsOrContents: [FilePathOrContents]) throws -> Output {
+        var partialDefinitions = try pathsOrContents.flatMap { pathOrContents -> [PartialResolverDefinition] in
+            guard let file = pathOrContents.file else { return [] }
             let typeChains = try getTypeChainsImplementingResolver(in: file)
             return typeChains.map {
                 PartialResolverDefinition(typeChain: $0.value, adoptionFile: $0.mapVoid())
             }
         }
 
-        let definitionErrors = try swiftFiles.reduce(into: [Located<DefinitionError>]()) { result, filePath in
-            guard let file = File(path: filePath) else { return }
+        let definitionErrors = try pathsOrContents.reduce(into: [Located<DefinitionError>]()) { result, pathOrContents in
+            guard let file = pathOrContents.file else { return }
             let structure = try Structure(file: file)
             let fileMembers = structure.dictionary.substructure ?? []
 
@@ -222,12 +247,19 @@ public struct ResolverDefinitionBuilder {
                 // to report additional errors.
                 return .right([])
         }
-        guard let declarationFilePath = definition.declarationFile?.file.path else {
+
+        guard let declarationFile = definition.declarationFile?.file else {
             return .right([
                 definition.adoptionFile.mapConstant(.cantFindDeclarationFile)
             ])
         }
+        if declarationFile.path == nil && !inUnitTests {
+            fatalError("The declaration file does not have a file path. This should never happen in prod since files are initialized from paths.")
+        }
 
+        // If we are in unit tests, we expect there to be no file path, so
+        // "<no path>" is acceptable.
+        let declarationFilePath = declarationFile.path ?? "<no path>"
         var resolverFunctions: [Located<ResolverFunctionDefinition>] = []
         var configFunctions: [Located<ConfigFunctionDefinition>] = []
         var functionErrors: [Located<DefinitionError>] = []
