@@ -3,5 +3,6 @@ import XCTest
 import SettlerTests
 
 var tests = [XCTestCaseEntry]()
-tests += SettlerTests.allTests()
+tests += SettlerTests.__allTests()
+
 XCTMain(tests)

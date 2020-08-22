@@ -3,7 +3,7 @@ import SourceKittenFramework
 /// An error discovered when parsing or validating a Resolver definition.
 /// These errors are intended to be reported to the user inside of Xcode
 /// by wrapping this type in `Located<DefinitionError>`.
-public enum DefinitionError: Error {
+public enum DefinitionError: Equatable, Error {
     case keyIsNotAnEnum
     case keyMemberIsNotATypeAlias
     case invalidTypeAlias

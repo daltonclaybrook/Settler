@@ -10,7 +10,7 @@ endif
 BINARIES_FOLDER=/usr/local/bin
 SETTLER_CLI_EXECUTABLE=$(shell swift build $(SWIFT_BUILD_FLAGS) --show-bin-path)/settler
 
-.PHONY: build clean test linuxmain install uninstall
+.PHONY: build clean test linuxmain xcode install uninstall
 
 default: build
 
@@ -25,6 +25,9 @@ test:
 
 linuxmain:
 	swift test --generate-linuxmain
+
+xcode:
+	swift package generate-xcodeproj
 
 install: build
 	install -d "$(BINARIES_FOLDER)"
