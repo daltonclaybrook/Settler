@@ -1,19 +1,19 @@
 /// Used to produce the string contents of a generated `Resolver+Output.swift`
 /// file. This process is decoupled from the process of actually determining
 /// the function order, which is handled by `FunctionOrderBuilder`.
-final class OutputFileContentsBuilder {
+public final class OutputFileContentsBuilder {
     let orderedDefinition: OrderedResolverDefinition
 
     private static let projectURL = "https://github.com/daltonclaybrook/Settler"
     private static let headerString = "// Generated using Settler \(SettlerVersion.current.value) - \(projectURL)"
     private static let doNotEditString = "// DO NOT EDIT"
-    private static let importSettler = "import SettlerKit"
+    private static let importSettler = "import Settler"
 
-    init(orderedDefinition: OrderedResolverDefinition) {
+    public init(orderedDefinition: OrderedResolverDefinition) {
         self.orderedDefinition = orderedDefinition
     }
 
-    func buildFileContents(with indentation: Indentation) -> String {
+    public func buildFileContents(with indentation: Indentation) -> String {
         let definition = orderedDefinition.definition
         let extensionIndent = indentation.depth(1)
         let functionIndent = extensionIndent + 1

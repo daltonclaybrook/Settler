@@ -1,8 +1,8 @@
-struct FunctionOrderBuilder {
+public struct FunctionOrderBuilder {
     /// Takes a Resolver definition and produces a representation of the order
     /// in which Resolver functions should be called in the generated `resolve()`
     /// method
-    static func build(with definition: ResolverDefinition) -> Either<FunctionOrder, [Located<DefinitionError>]> {
+    public static func build(with definition: ResolverDefinition) -> Either<FunctionOrder, [Located<DefinitionError>]> {
         let keysResult = UsedKeysFilter(definition: definition).determineAllUsedResolverKeys()
         guard case .success(let keys) = keysResult else {
             let errors = keysResult.failureError.map { [$0] } ?? []

@@ -1,6 +1,7 @@
 import ArgumentParser
 import Dispatch
 import Foundation
+import SettlerFramework
 import SourceKittenFramework
 
 struct Resolve: ParsableCommand {

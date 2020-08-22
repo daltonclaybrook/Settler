@@ -3,7 +3,7 @@ import SourceKittenFramework
 /// An error discovered when parsing or validating a Resolver definition.
 /// These errors are intended to be reported to the user inside of Xcode
 /// by wrapping this type in `Located<DefinitionError>`.
-enum DefinitionError: Error {
+public enum DefinitionError: Error {
     case keyIsNotAnEnum
     case keyMemberIsNotATypeAlias
     case invalidTypeAlias
@@ -22,7 +22,7 @@ enum DefinitionError: Error {
 }
 
 extension DefinitionError: CustomStringConvertible {
-    var description: String {
+    public var description: String {
         switch self {
         case .keyIsNotAnEnum:
             return "The Key type must be an enum"

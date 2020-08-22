@@ -3,12 +3,12 @@ import SourceKittenFramework
 /// Represents an object that has a corresponding location in a file,
 /// such as a function definition.
 @dynamicMemberLookup
-struct Located<Value> {
-    let value: Value
-    let file: File
-    let offset: Int64?
+public struct Located<Value> {
+    public let value: Value
+    public let file: File
+    public let offset: Int64?
 
-    subscript<T>(dynamicMember keyPath: KeyPath<Value, T>) -> T {
+    public subscript<T>(dynamicMember keyPath: KeyPath<Value, T>) -> T {
         value[keyPath: keyPath]
     }
 }
@@ -34,10 +34,10 @@ extension Located {
 }
 
 extension Located: XcodeErrorDescription where Value: Error, Value: CustomStringConvertible {
-    var filePath: String? { file.path }
-    var errorString: String { value.description }
+    public var filePath: String? { file.path }
+    public var errorString: String { value.description }
 
-    var lineAndCharacter: (line: Int, character: Int) {
+    public var lineAndCharacter: (line: Int, character: Int) {
         let byteOffset = ByteCount(offset ?? 0)
         return file.stringView.lineAndCharacter(forByteOffset: byteOffset) ?? (0, 0)
     }

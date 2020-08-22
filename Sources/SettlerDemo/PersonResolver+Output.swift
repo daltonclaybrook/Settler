@@ -1,6 +1,6 @@
 // Generated using Settler 0.1.0 - https://github.com/daltonclaybrook/Settler
 // DO NOT EDIT
-import SettlerKit
+import Settler
 
 extension PersonResolver {
     func resolve() -> Output {

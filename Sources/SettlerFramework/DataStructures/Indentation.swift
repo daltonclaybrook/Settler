@@ -1,25 +1,10 @@
-import ArgumentParser
-
-enum IndentArgument: String, ExpressibleByArgument {
-    case spaces, tabs
-
-    func toIndentation(tabSize: Int) -> Indentation {
-        switch self {
-        case .spaces:
-            return .spaces(count: tabSize)
-        case .tabs:
-            return .tabs
-        }
-    }
-}
-
-enum Indentation {
+public enum Indentation {
     case spaces(count: Int)
     case tabs
 }
 
 extension Indentation: CustomStringConvertible {
-    var description: String {
+    public var description: String {
         switch self {
         case .spaces(let count):
             return Array(repeating: " ", count: count).joined()

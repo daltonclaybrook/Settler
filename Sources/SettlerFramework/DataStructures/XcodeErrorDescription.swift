@@ -1,7 +1,7 @@
 /// Types that adopt this protocol can produce errors that are displayed
 /// inside of Xcode in a particular file, on a specific line and with a
 /// character offset
-protocol XcodeErrorDescription: CustomStringConvertible {
+public protocol XcodeErrorDescription: CustomStringConvertible {
     var filePath: String? { get }
     var errorString: String { get }
     var lineAndCharacter: (line: Int, character: Int) { get }
@@ -9,7 +9,7 @@ protocol XcodeErrorDescription: CustomStringConvertible {
 
 extension XcodeErrorDescription {
     /// Inspired by SwiftLint
-    var description: String {
+    public var description: String {
         // Xcode likes warnings and errors in the following format:
         // {full_path_to_file}{:line}{:character}: {error,warning}: {content}
         let (line, character) = lineAndCharacter

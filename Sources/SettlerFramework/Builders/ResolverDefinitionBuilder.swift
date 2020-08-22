@@ -8,16 +8,16 @@ enum TypeNameConstants {
 
 /// Used to parse all Swift files in the Settler sources path and produce
 /// definitions for every Resolver found.
-struct ResolverDefinitionBuilder {
-    struct Output {
-        let definitions: [ResolverDefinition]
-        let errors: [Located<DefinitionError>]
+public struct ResolverDefinitionBuilder {
+    public struct Output {
+        public let definitions: [ResolverDefinition]
+        public let errors: [Located<DefinitionError>]
     }
 
     /// A Resolver must be declared as one of these kinds
     private static let declarationKinds: Set<SwiftDeclarationKind> = [.class, .struct, .enum]
 
-    static func buildWith(swiftFiles: [String]) throws -> Output {
+    public static func buildWith(swiftFiles: [String]) throws -> Output {
         var partialDefinitions = try swiftFiles.flatMap { filePath -> [PartialResolverDefinition] in
             guard let file = File(path: filePath) else { return [] }
             let typeChains = try getTypeChainsImplementingResolver(in: file)

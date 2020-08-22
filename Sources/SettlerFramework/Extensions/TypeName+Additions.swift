@@ -55,11 +55,11 @@ extension TypeName {
 }
 
 extension Array where Element == TypeName {
-    var dotJoined: TypeName {
+    public var dotJoined: TypeName {
         joined(separator: ".")
     }
 
-    var arrowJoined: String {
+    public var arrowJoined: String {
         joined(separator: " → ")
     }
 }

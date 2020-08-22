@@ -2,29 +2,29 @@ import Foundation
 import SourceKittenFramework
 
 /// The name of a type. e.g. `MyResolver` or `Key.Foo`
-typealias TypeName = String
+public typealias TypeName = String
 /// A `TypeNameChain` is a collection of namespaces terminated by a type
 /// that can be legally joined with a dot,
 /// e.g. `MyModule.MyResolver.Key.Foo`
-typealias TypeNameChain = [TypeName]
+public typealias TypeNameChain = [TypeName]
 
 /// The definition of a type-alias. This may be the `Output` type-alias, or
 /// a member of the `Keys` enum.
-struct TypeAliasDefinition {
-    let name: TypeName
-    let existingType: TypeName
+public struct TypeAliasDefinition {
+    public let name: TypeName
+    public let existingType: TypeName
 }
 
 /// The definition of a Resolver's `Key` enum. This enum is a collection
 /// of type-aliases defining the objects that can be resolved by a Resolver.
-struct KeyDefinition {
-    let typeAliases: [Located<TypeAliasDefinition>]
+public struct KeyDefinition {
+    public let typeAliases: [Located<TypeAliasDefinition>]
 }
 
 /// A parameter to a function
-struct FunctionParameter {
-    let name: String
-    let typeName: TypeName
+public struct FunctionParameter {
+    public let name: String
+    public let typeName: TypeName
 }
 
 /// A function definition as the Resolver is being parsed. This might be
@@ -39,19 +39,19 @@ struct PartialFunctionDefinition {
 /// The definition for a Resolver function. A Resolver function is one that
 /// resolves a `Key` member by returning in, and takes only `Key` members
 /// as parameters.
-struct ResolverFunctionDefinition {
-    let name: String
-    let parameters: [FunctionParameter]
-    let returnType: TypeName
-    let isThrowing: Bool
+public struct ResolverFunctionDefinition {
+    public let name: String
+    public let parameters: [FunctionParameter]
+    public let returnType: TypeName
+    public let isThrowing: Bool
 }
 
 /// The definition for a config function. A config function is one that takes
 /// only `Key` members as parameters, and has a return type of `Void`.
-struct ConfigFunctionDefinition {
-    let name: String
-    let parameters: [FunctionParameter]
-    let isThrowing: Bool
+public struct ConfigFunctionDefinition {
+    public let name: String
+    public let parameters: [FunctionParameter]
+    public let isThrowing: Bool
 }
 
 /// This type represents a Resolver definition as it is being parsed. If
@@ -70,21 +70,21 @@ struct PartialResolverDefinition {
 
 /// The complete Resolver definition after it has been completely parsed,
 /// though it may not have been validated yet.
-struct ResolverDefinition {
-    let typeChain: TypeNameChain
+public struct ResolverDefinition {
+    public let typeChain: TypeNameChain
     /// The Swift file path where the type adopts the Resolver protocol
-    let adoptionFile: Located<Void>
+    public let adoptionFile: Located<Void>
     /// The Swift file path where the type is declared
-    let declarationFilePath: String
-    let keyDefinition: KeyDefinition
-    let outputDefinition: TypeAliasDefinition
+    public let declarationFilePath: String
+    public let keyDefinition: KeyDefinition
+    public let outputDefinition: TypeAliasDefinition
     /// A Resolver function is a function that returns a member of the `Key`.
     /// These functions may only accept other `Key` members as arguments.
     /// There must not be two Resolver functions that return the same key.
-    let resolverFunctions: [Located<ResolverFunctionDefinition>]
+    public let resolverFunctions: [Located<ResolverFunctionDefinition>]
     /// A config function is one that accepts only `Key` members as arguments
     /// and has a return type of `Void`
-    let configFunctions: [ConfigFunctionDefinition]
+    public let configFunctions: [ConfigFunctionDefinition]
 }
 
 protocol FunctionDefinitionType {

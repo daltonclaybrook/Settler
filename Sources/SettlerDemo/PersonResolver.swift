@@ -1,5 +1,5 @@
 import Foundation
-import SettlerKit
+import Settler
 
 // 👨‍👨‍👧‍👦👨‍👨‍👧‍👦👨‍👨‍👧‍👦👨‍👨‍👧‍👦
 enum ResolverError: Error {

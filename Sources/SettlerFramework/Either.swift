@@ -1,10 +1,10 @@
-enum Either<L, R> {
+public enum Either<L, R> {
     case left(L)
     case right(R)
 }
 
 extension Either {
-    var left: L? {
+    public var left: L? {
         switch self {
         case .left(let left):
             return left
@@ -13,7 +13,7 @@ extension Either {
         }
     }
 
-    var right: R? {
+    public var right: R? {
         switch self {
         case .left:
             return nil
@@ -22,7 +22,7 @@ extension Either {
         }
     }
 
-    func mapLeft<T>(_ transform: (L) -> T) -> Either<T, R> {
+    public func mapLeft<T>(_ transform: (L) -> T) -> Either<T, R> {
         switch self {
         case .left(let value):
             return .left(transform(value))
@@ -32,7 +32,7 @@ extension Either {
     }
 }
 
-protocol EitherType {
+public protocol EitherType {
     associatedtype L
     associatedtype R
     var left: L? { get }
@@ -42,7 +42,7 @@ protocol EitherType {
 extension Either: EitherType {}
 
 extension Array where Element: EitherType {
-    func splitLeftAndRight() -> ([Element.L], [Element.R]) {
+    public func splitLeftAndRight() -> ([Element.L], [Element.R]) {
         var allLeft: [Element.L] = []
         var allRight: [Element.R] = []
         forEach { element in

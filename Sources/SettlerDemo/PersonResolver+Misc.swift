@@ -1,4 +1,4 @@
-import SettlerKit
+import Settler
 
 extension PersonResolver {
     func resolveSteve(
