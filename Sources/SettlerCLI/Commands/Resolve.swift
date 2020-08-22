@@ -69,10 +69,6 @@ struct Resolve: ParsableCommand {
 
     // MARK: - Helpers
 
-    private func exitWithFailure() -> Never {
-        Self.exit(withError: EmptyError())
-    }
-
     private func saveFileContents(_ contents: String, for definition: ResolverDefinition) throws {
         let fileName = "\(definition.typeChain.dotJoined)+Output.swift"
         let filePath = definition.declarationFilePath
@@ -82,8 +78,4 @@ struct Resolve: ParsableCommand {
             .appendingPathComponent(fileName)
         try contents.write(toFile: filePath, atomically: true, encoding: .utf8)
     }
-}
-
-struct EmptyError: Error, CustomStringConvertible {
-    var description: String { "" }
 }
