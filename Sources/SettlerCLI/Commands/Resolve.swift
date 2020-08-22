@@ -1,12 +1,8 @@
 import ArgumentParser
-import Dispatch
 import Foundation
 import SettlerFramework
-import SourceKittenFramework
 
 struct Resolve: ParsableCommand {
-    private typealias StructuresAndFile = (structures: [[String: SourceKitRepresentable]], file: File)
-
     static let configuration = CommandConfiguration(
         abstract: "Parse any Resolvers in the target project and generate type-safe functions for producing the desired Resolver outputs"
     )
@@ -21,7 +17,6 @@ struct Resolve: ParsableCommand {
     @Option(help: "Count of spaces to use for indentation. Only valid with '--indent spaces'.")
     var tabSize: Int = 4
 
-    private static let typeKinds: Set<SwiftDeclarationKind> = [.class, .struct, .enum, .extension]
     private var indentation: Indentation {
         indent.toIndentation(tabSize: tabSize)
     }
@@ -44,7 +39,7 @@ struct Resolve: ParsableCommand {
             throw SettlerError.unknownError
         }
 
-        // Determine absolute paths of all Swift files
+        // Determine absolute paths of all Swift files in `sourcesPath`
         let swiftFiles = enumerator
             .compactMap { fileName -> String? in
                 guard let fileName = fileName as? String,
@@ -53,18 +48,9 @@ struct Resolve: ParsableCommand {
             }
 
         let definitionsAndErrors = try ResolverDefinitionBuilder.buildWith(swiftFiles: swiftFiles)
-        var allErrors = definitionsAndErrors.errors
-        var orderedDefinitions: [OrderedResolverDefinition] = []
-
-        definitionsAndErrors.definitions.forEach { definition in
-            switch FunctionOrderBuilder.build(with: definition) {
-            case .left(let order):
-                let ordered = OrderedResolverDefinition(definition: definition, functionOrder: order)
-                orderedDefinitions.append(ordered)
-            case .right(let errors):
-                allErrors.append(contentsOf: errors)
-            }
-        }
+        let (orderedDefinitions, orderBuilderErrors) = definitionsAndErrors.definitions
+            .map(OrderedDefinitionBuilder.build(with:))
+            .splitLeftAndRight()
 
         try orderedDefinitions.forEach { definition in
             let builder = OutputFileContentsBuilder(orderedDefinition: definition)
@@ -72,6 +58,7 @@ struct Resolve: ParsableCommand {
             try saveFileContents(contents, for: definition.definition)
         }
 
+        let allErrors = definitionsAndErrors.errors + orderBuilderErrors.flatMap { $0 }
         if !allErrors.isEmpty {
             let errorString = allErrors.errorString
             print(errorString, to: &standardError)
