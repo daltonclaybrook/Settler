@@ -23,7 +23,7 @@ jobs:
       run: swift test --generate-linuxmain
     - name: Run tests
       run: swift test --enable-code-coverage -v
-    - name: Covert Swift coverage report to llvm-cov
+    - name: Covert Swift coverage report to lcov
       run: llvm-cov-10 export -format="lcov" .build/debug/SettlerPackageTests.xctest -instr-profile .build/debug/codecov/default.profdata > ./coverage.lcov
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
