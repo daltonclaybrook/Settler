@@ -6,11 +6,19 @@ extension ResolverDefinitionBuilderTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__ResolverDefinitionBuilderTests = [
+        ("testDefinitionHasCorrectConfigFunctions", testDefinitionHasCorrectConfigFunctions),
+        ("testDefinitionHasCorrectKeys", testDefinitionHasCorrectKeys),
+        ("testDefinitionHasCorrectOutput", testDefinitionHasCorrectOutput),
+        ("testDefinitionHasCorrectResolverFunctions", testDefinitionHasCorrectResolverFunctions),
+        ("testDefinitionHasCorrectTypeChain", testDefinitionHasCorrectTypeChain),
+        ("testDefinitionIsReturnedForResolverWithNamespace", testDefinitionIsReturnedForResolverWithNamespace),
+        ("testDefinitionIsReturnedWithAnExtension", testDefinitionIsReturnedWithAnExtension),
         ("testErrorIsReturnedForAllKeyMembersThatAreNotTypeAliases", testErrorIsReturnedForAllKeyMembersThatAreNotTypeAliases),
         ("testErrorIsReturnedForKeyThatIsNotAnEnum", testErrorIsReturnedForKeyThatIsNotAnEnum),
         ("testErrorIsReturnedForOutputThatIsNotAnAlias", testErrorIsReturnedForOutputThatIsNotAnAlias),
         ("testErrorIsReturnedIfResolverDeclarationCannotBeFound", testErrorIsReturnedIfResolverDeclarationCannotBeFound),
         ("testErrorIsReturnedIfResolverFunctionContainsNonKeyParam", testErrorIsReturnedIfResolverFunctionContainsNonKeyParam),
+        ("testErrorIsReturnedIfResolverHasDuplicateResolverFunctions", testErrorIsReturnedIfResolverHasDuplicateResolverFunctions),
         ("testErrorIsReturnedWhenOutputIsNotAMemberOfKey", testErrorIsReturnedWhenOutputIsNotAMemberOfKey),
         ("testNoDefinitionOrErrorReturnedForNoKey", testNoDefinitionOrErrorReturnedForNoKey),
         ("testNoDefinitionOrErrorReturnedForNoOutput", testNoDefinitionOrErrorReturnedForNoOutput),
