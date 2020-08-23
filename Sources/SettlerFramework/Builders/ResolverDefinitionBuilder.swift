@@ -203,6 +203,7 @@ public struct ResolverDefinitionBuilder {
         guard let nameOffset = functionStructure.nameOffset,
             let nameLength = functionStructure.nameLength,
             let bodyOffset = functionStructure.bodyOffset else {
+                // My assumption is that this can't actually happen in practice... 🤷‍♂️
                 return [
                     DefinitionError.invalidFunction
                         .located(in: file, offset: functionStructure.offset)

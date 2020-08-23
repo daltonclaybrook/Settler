@@ -242,6 +242,8 @@ final class ResolverDefinitionBuilderTests: XCTestCase {
     var completeTestResolverContents: String {
         """
         struct TestResolver: Resolver {
+            var someProperty = "abc123"
+
             typealias Output = Key.Foo
             enum Key {
                 typealias Foo = String
