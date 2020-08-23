@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Find SourceKit
+      run: find / -name "libsourcekitdInProc*"
     - name: Build
       run: swift build -v
     - name: Generate LinuxMain.swift
