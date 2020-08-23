@@ -13,8 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Find SourceKit
-      run: sudo find /usr -name "libsourcekitdInProc*"
+    - name: Set SourceKit environment variable
+      run: echo "::set-env name=LINUX_SOURCEKIT_LIB_PATH::/usr/share/swift/usr/lib/libsourcekitdInProc.so"
     - name: Build
       run: swift build -v
     - name: Generate LinuxMain.swift
