@@ -111,17 +111,21 @@ public struct ResolverDefinitionBuilder {
 
     /// Find all file members matching the given type chain
     private static func findFileMembersMatching(typeChain: TypeNameChain, in fileMembers: [[String: SourceKitRepresentable]]) -> [[String: SourceKitRepresentable]] {
-        var typeChain = typeChain
-        guard !typeChain.isEmpty else { return [] }
-        let firstType = typeChain.removeFirst()
+        fileMembers.flatMap { structure -> [[String: SourceKitRepresentable]] in
+            guard let components = structure.name?.components(separatedBy: "."),
+                !components.isEmpty,
+                typeChain.count >= components.count,
+                components == Array(typeChain[0..<components.count])
+                else { return [] }
 
-        let structuresForType = fileMembers.filter { structure in
-            structure.name == firstType
-        }
-        if typeChain.isEmpty {
-            return structuresForType
-        } else {
-            return findFileMembersMatching(typeChain: typeChain, in: structuresForType)
+            if typeChain.count == components.count {
+                // This is the type we're looking for
+                return [structure]
+            } else {
+                // We have deeper to go
+                let childChain = Array(typeChain[components.count...])
+                return findFileMembersMatching(typeChain: childChain, in: structure.substructure ?? [])
+            }
         }
     }
 

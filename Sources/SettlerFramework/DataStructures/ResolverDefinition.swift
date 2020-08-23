@@ -10,7 +10,7 @@ public typealias TypeNameChain = [TypeName]
 
 /// The definition of a type-alias. This may be the `Output` type-alias, or
 /// a member of the `Keys` enum.
-public struct TypeAliasDefinition {
+public struct TypeAliasDefinition: Equatable {
     public let name: TypeName
     public let existingType: TypeName
 }
@@ -22,7 +22,7 @@ public struct KeyDefinition {
 }
 
 /// A parameter to a function
-public struct FunctionParameter {
+public struct FunctionParameter: Equatable {
     public let name: String
     public let typeName: TypeName
 }
@@ -39,7 +39,7 @@ struct PartialFunctionDefinition {
 /// The definition for a Resolver function. A Resolver function is one that
 /// resolves a `Key` member by returning in, and takes only `Key` members
 /// as parameters.
-public struct ResolverFunctionDefinition {
+public struct ResolverFunctionDefinition: Equatable {
     public let name: String
     public let parameters: [FunctionParameter]
     public let returnType: TypeName
@@ -48,7 +48,7 @@ public struct ResolverFunctionDefinition {
 
 /// The definition for a config function. A config function is one that takes
 /// only `Key` members as parameters, and has a return type of `Void`.
-public struct ConfigFunctionDefinition {
+public struct ConfigFunctionDefinition: Equatable {
     public let name: String
     public let parameters: [FunctionParameter]
     public let isThrowing: Bool
