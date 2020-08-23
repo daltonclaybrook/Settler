@@ -20,4 +20,12 @@ jobs:
     - name: Generate LinuxMain.swift
       run: swift test --generate-linuxmain
     - name: Run tests
-      run: swift test -v
+      run: swift test --enable-code-coverage -v
+    - name: Move coverage file to well-known location
+      run: cp $(swift test --show-codecov-path) ./coverage.json
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.json
+        fail_ci_if_error: true
