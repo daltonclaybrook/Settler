@@ -15,8 +15,10 @@ jobs:
     - uses: actions/checkout@v2
     - name: Set SourceKit environment variable
       run: echo "::set-env name=LINUX_SOURCEKIT_LIB_PATH::/usr/share/swift/usr/lib/libsourcekitdInProc.so"
+    - name: Print SourceKit env var
+      run: echo "${LINUX_SOURCEKIT_LIB_PATH}"
     - name: Link SourceKit in correct search path
-      run: ln -s /usr/share/swift/usr/lib/libsourcekitdInProc.so /usr/lib/libsourcekitdInProc.so
+      run: sudo ln -s /usr/share/swift/usr/lib/libsourcekitdInProc.so /usr/lib/libsourcekitdInProc.so
     - name: Build
       run: swift build -v
     - name: Generate LinuxMain.swift
