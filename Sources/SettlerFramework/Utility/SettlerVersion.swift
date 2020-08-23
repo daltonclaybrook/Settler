@@ -5,4 +5,6 @@ struct SettlerVersion {
     let value: String
 }
 
-public let inUnitTests = NSClassFromString("XCTest") != nil
+public let inUnitTests = ProcessInfo.processInfo
+    .arguments
+    .contains { $0.hasSuffix("xctest") }
