@@ -15,20 +15,19 @@ jobs:
     - uses: actions/checkout@v2
     - name: Link SourceKit in correct search path
       run: sudo ln -s /usr/share/swift/usr/lib/libsourcekitdInProc.so /usr/lib/libsourcekitdInProc.so
-    # - name: Install LLVM
-    #   run: sudo apt-get install -y llvm
+    - name: Install LLVM
+      run: sudo apt-get install -y llvm
     - name: Build
       run: swift build -v
     - name: Generate LinuxMain.swift
       run: swift test --generate-linuxmain
     - name: Run tests
       run: swift test --enable-code-coverage -v
-    # - name: Covert Swift coverage report to HTML
-    #   run: llvm-cov export -format="html" .build/debug/SettlerPackageTests.xctest -instr-profile .build/debug/codecov/default.profdata > ./coverage.html
+    - name: Covert Swift coverage report to llvm-cov
+      run: llvm-cov export .build/debug/SettlerPackageTests.xctest -instr-profile .build/debug/codecov/default.profdata > ./coverage.lcov
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        # file: ./coverage.html
-        directory: .build/debug/codecov
+        file: ./coverage.lcov
         fail_ci_if_error: true
