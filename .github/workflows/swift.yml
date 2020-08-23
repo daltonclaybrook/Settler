@@ -1,0 +1,23 @@
+name: Swift
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Link SourceKit in correct search path
+      run: sudo ln -s /usr/share/swift/usr/lib/libsourcekitdInProc.so /usr/lib/libsourcekitdInProc.so
+    - name: Build
+      run: swift build -v
+    - name: Generate LinuxMain.swift
+      run: swift test --generate-linuxmain
+    - name: Run tests
+      run: swift test -v
