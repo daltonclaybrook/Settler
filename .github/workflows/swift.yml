@@ -16,7 +16,7 @@ jobs:
     - name: Link SourceKit in correct search path
       run: sudo ln -s /usr/share/swift/usr/lib/libsourcekitdInProc.so /usr/lib/libsourcekitdInProc.so
     - name: Install LLVM
-      run: sudo apt-get install -y llvm
+      run: sudo apt-get install -y llvm-10
     - name: Build
       run: swift build -v
     - name: Generate LinuxMain.swift
@@ -24,7 +24,7 @@ jobs:
     - name: Run tests
       run: swift test --enable-code-coverage -v
     - name: Covert Swift coverage report to llvm-cov
-      run: llvm-cov export .build/debug/SettlerPackageTests.xctest -instr-profile .build/debug/codecov/default.profdata > ./coverage.lcov
+      run: llvm-cov-10 export -format="lcov" .build/debug/SettlerPackageTests.xctest -instr-profile .build/debug/codecov/default.profdata > ./coverage.lcov
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
