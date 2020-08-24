@@ -140,7 +140,7 @@ final class ResolverDefinitionBuilderTests: XCTestCase {
     }
 
     func testDefinitionHasCorrectTypeChain() throws {
-        let output = try ResolverDefinitionBuilder.buildWith(pathsOrContents: [.contents(completeTestResolverContents)])
+        let output = try ResolverDefinitionBuilder.buildWith(pathsOrContents: [.contents(SampleResolverContents.completeResolver)])
         let definition = try XCTUnwrap(output.definitions[safe: 0])
         XCTAssertEqual(output.definitions.count, 1)
         XCTAssertEqual(output.errors.count, 0)
@@ -148,7 +148,7 @@ final class ResolverDefinitionBuilderTests: XCTestCase {
     }
 
     func testDefinitionHasCorrectKeys() throws {
-        let output = try ResolverDefinitionBuilder.buildWith(pathsOrContents: [.contents(completeTestResolverContents)])
+        let output = try ResolverDefinitionBuilder.buildWith(pathsOrContents: [.contents(SampleResolverContents.completeResolver)])
         let definition = try XCTUnwrap(output.definitions[safe: 0])
         let keys = definition.keyDefinition.typeAliases.map(\.value)
         let expectedKeys = [
@@ -159,14 +159,14 @@ final class ResolverDefinitionBuilderTests: XCTestCase {
     }
 
     func testDefinitionHasCorrectOutput() throws {
-        let output = try ResolverDefinitionBuilder.buildWith(pathsOrContents: [.contents(completeTestResolverContents)])
+        let output = try ResolverDefinitionBuilder.buildWith(pathsOrContents: [.contents(SampleResolverContents.completeResolver)])
         let definition = try XCTUnwrap(output.definitions[safe: 0])
         let expectedOutput = TypeAliasDefinition(name: "Output", existingType: "Key.Foo")
         XCTAssertEqual(definition.outputDefinition, expectedOutput)
     }
 
     func testDefinitionHasCorrectResolverFunctions() throws {
-        let output = try ResolverDefinitionBuilder.buildWith(pathsOrContents: [.contents(completeTestResolverContents)])
+        let output = try ResolverDefinitionBuilder.buildWith(pathsOrContents: [.contents(SampleResolverContents.completeResolver)])
         let definition = try XCTUnwrap(output.definitions[safe: 0])
         let resolverFunctions = definition.resolverFunctions.map(\.value)
         let expectedResolverFunctions = [
@@ -179,7 +179,7 @@ final class ResolverDefinitionBuilderTests: XCTestCase {
     }
 
     func testDefinitionHasCorrectConfigFunctions() throws {
-        let output = try ResolverDefinitionBuilder.buildWith(pathsOrContents: [.contents(completeTestResolverContents)])
+        let output = try ResolverDefinitionBuilder.buildWith(pathsOrContents: [.contents(SampleResolverContents.completeResolver)])
         let definition = try XCTUnwrap(output.definitions[safe: 0])
         let expectedConfigFunctions = [
             ConfigFunctionDefinition(name: "configure(foo:bar:)", parameters: [
@@ -235,31 +235,5 @@ final class ResolverDefinitionBuilderTests: XCTestCase {
         XCTAssertEqual(output.definitions.count, 1)
         XCTAssertEqual(output.errors.count, 0)
         XCTAssertEqual(output.definitions[safe: 0]?.typeChain, ["Namespace", "TestResolver"])
-    }
-
-    // MARK: - Helpers
-
-    var completeTestResolverContents: String {
-        """
-        struct TestResolver: Resolver {
-            var someProperty = "abc123"
-
-            typealias Output = Key.Foo
-            enum Key {
-                typealias Foo = String
-                typealias Bar = Int
-            }
-
-            // Resolver functions
-            func resolveFoo(bar: Key.Bar) -> Key.Foo { "abc" }
-            func resolveBar() -> Key.Bar { 123 }
-
-            // Config functions
-            func configure(foo: Key.Foo, bar: Key.Bar) throws { print(foo) }
-
-            // Ignored functions
-            func thisIsIgnored(foo: Key.Foo, testing: String) { print(testing) }
-        }
-        """
     }
 }
