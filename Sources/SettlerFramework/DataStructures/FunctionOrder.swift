@@ -5,20 +5,12 @@ public struct FunctionCall {
     public let isLazy: Bool
 }
 
-public struct FunctionSection {
-    public let calls: [FunctionCall]
-}
-
-public struct FunctionOrder {
-    public let sections: [FunctionSection]
-}
-
 public struct OrderedResolverDefinition {
     public let definition: ResolverDefinition
-    public let functionOrder: FunctionOrder
+    public let orderedCalls: [FunctionCall]
 
-    public init(definition: ResolverDefinition, functionOrder: FunctionOrder) {
+    public init(definition: ResolverDefinition, orderedCalls: [FunctionCall]) {
         self.definition = definition
-        self.functionOrder = functionOrder
+        self.orderedCalls = orderedCalls
     }
 }

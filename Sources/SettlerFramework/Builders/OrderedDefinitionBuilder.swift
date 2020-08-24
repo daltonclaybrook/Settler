@@ -13,11 +13,11 @@ public struct OrderedDefinitionBuilder {
         let usedResolverFunctions = keys.usedKeys.compactMap { functionsForType[$0] }
 
         let allCallsOrErrors = makeFunctionCalls(from: usedResolverFunctions, in: definition)
-        guard var allCalls = allCallsOrErrors.left else {
+        guard var remainingCalls = allCallsOrErrors.left else {
             return .right(allCallsOrErrors.right ?? [])
         }
 
-        let zeroParameters = allCalls.compactMapRemoving { call -> Located<FunctionCall>? in
+        let zeroParameters = remainingCalls.compactMapRemoving { call -> Located<FunctionCall>? in
             guard call.definition.parameters.isEmpty else { return nil }
             return call
         }
@@ -26,18 +26,13 @@ public struct OrderedDefinitionBuilder {
             fatalError("No resolver functions were found with zero parameters, but this should have resulted in `DefinitionError.circularResolverDependency`. If you're seeing this error, please consider creating a GitHub issue.")
         }
 
-        let initialSection = FunctionSection(calls: zeroParameters.map(\.value))
-        let allSectionsResult = allSectionsByGeneratingRemaining(
-            initial: initialSection,
-            remainingCalls: allCalls,
+        let allOrderedCallsResult = allOrderedCallsByGeneratingRemaining(
+            initialCalls: zeroParameters.map(\.value),
+            remainingCalls: remainingCalls,
             definition: definition
         )
-        return allSectionsResult.mapLeft { sections in
-            let order = FunctionOrder(sections: sections)
-            return OrderedResolverDefinition(
-                definition: definition,
-                functionOrder: order
-            )
+        return allOrderedCallsResult.mapLeft { orderedCalls in
+            OrderedResolverDefinition(definition: definition, orderedCalls: orderedCalls)
         }
     }
 
@@ -73,15 +68,15 @@ public struct OrderedDefinitionBuilder {
         return .left(call)
     }
 
-    private static func allSectionsByGeneratingRemaining(
-        initial: FunctionSection,
+    private static func allOrderedCallsByGeneratingRemaining(
+        initialCalls: [FunctionCall],
         remainingCalls: [Located<FunctionCall>],
         definition: ResolverDefinition
-    ) -> Either<[FunctionSection], [Located<DefinitionError>]> {
+    ) -> Either<[FunctionCall], [Located<DefinitionError>]> {
         var remainingCalls = remainingCalls
-        var allSections = [initial]
+        var orderedCalls = initialCalls
         while !remainingCalls.isEmpty {
-            let allResolvedTypes = Set(allSections.flatMap(\.calls).map(\.definition.returnType))
+            let allResolvedTypes = Set(orderedCalls.map(\.definition.returnType))
             let calls = remainingCalls.compactMapRemoving { call -> FunctionCall? in
                 let containsUnresolvedParam = call.definition.parameters.contains { param in
                     !allResolvedTypes.contains(param.typeName.strippingLazyWrapper)
@@ -91,12 +86,11 @@ public struct OrderedDefinitionBuilder {
             }
 
             if !calls.isEmpty {
-                let section = FunctionSection(calls: calls)
-                allSections.append(section)
+                orderedCalls.append(contentsOf: calls)
             } else {
                 fatalError("Unable to determine next function to call. This should have resulted in `DefinitionError.circularResolverDependency`")
             }
         }
-        return .left(allSections)
+        return .left(orderedCalls)
     }
 }
