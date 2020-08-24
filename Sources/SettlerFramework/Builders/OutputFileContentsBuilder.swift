@@ -4,9 +4,9 @@
 public final class OutputFileContentsBuilder {
     let orderedDefinition: OrderedResolverDefinition
 
-    private static let projectURL = "https://github.com/daltonclaybrook/Settler"
-    private static let headerString = "// Generated using Settler \(SettlerVersion.current.value) - \(projectURL)"
+    static let headerString = "// Generated using Settler \(SettlerVersion.current.value) - \(projectURL)"
     private static let doNotEditString = "// DO NOT EDIT"
+    private static let projectURL = "https://github.com/daltonclaybrook/Settler"
     private static let importSettler = "import Settler"
 
     public init(orderedDefinition: OrderedResolverDefinition) {
@@ -18,7 +18,7 @@ public final class OutputFileContentsBuilder {
         let extensionIndent = indentation.depth(1)
         let functionIndent = extensionIndent + 1
 
-        let sectionsString = makeStringForAllSections(indent: functionIndent)
+        let orderedCallsString = makeStringForAllOrderedCalls(indent: functionIndent)
         let configsString = makeStringForConfigFunctions(indent: functionIndent)
         let returnString = makeReturnString(indent: functionIndent)
         let throwsString = areAnyFunctionsThrowing() ? " throws " : " "
@@ -30,7 +30,7 @@ public final class OutputFileContentsBuilder {
 
         extension \(definition.typeChain.dotJoined) {
         \(extensionIndent)func resolve()\(throwsString)-> Output {
-        \(sectionsString)
+        \(orderedCallsString)
         \(configsString)
         \(returnString)
         \(extensionIndent)}
@@ -41,17 +41,11 @@ public final class OutputFileContentsBuilder {
 
     // MARK: - Helper functions
 
-    private func makeStringForAllSections(indent: IndentDepth) -> String {
-        let sectionStrings = orderedDefinition.functionOrder
-            .sections
-            .enumerated()
-            .map { index, section -> String in
-                let allCallsString = section.calls
-                    .map { makeString(for: $0, indent: indent) }
-                    .joined(separator: "\n")
-                return "\(indent)// Resolver phase \(index + 1)\n\(allCallsString)"
-            }
-        return sectionStrings.joined(separator: "\n")
+    private func makeStringForAllOrderedCalls(indent: IndentDepth) -> String {
+        let allCallsString = orderedDefinition.orderedCalls
+            .map { makeString(for: $0, indent: indent) }
+            .joined(separator: "\n")
+        return "\(indent)// Resolver functions\n\(allCallsString)"
     }
 
     private func makeStringForConfigFunctions(indent: IndentDepth) -> String {
@@ -115,12 +109,8 @@ public final class OutputFileContentsBuilder {
             return isLazy
         }
 
-        let callForType = orderedDefinition.functionOrder
-            .sections
-            .lazy
-            .flatMap(\.calls).first { call in
-                call.definition.returnType == typeName
-            }
+        let callForType = orderedDefinition.orderedCalls
+            .first { $0.definition.returnType == typeName }
         let isLazy = callForType?.isLazy ?? false
         isLazyMemoized[typeName] = isLazy
         return isLazy
