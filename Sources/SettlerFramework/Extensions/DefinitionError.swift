@@ -15,9 +15,7 @@ public enum DefinitionError: Equatable, Error {
     case resolverFunctionContainsNonKeyParam
     case duplicateReturnTypesInResolverFunctions
     case noResolverFunctionForKey
-    case noResolverFunctionsWithZeroParams
     case circularResolverDependency(keys: [TypeName])
-    case unresolvableDependencies
     case resolverFunctionCannotBeThrowingIfResultIsUsedLazily
 }
 
@@ -46,12 +44,8 @@ extension DefinitionError: CustomStringConvertible {
             return "This resolver function has the same return type as another function. You may only implement one resolver function per type."
         case .noResolverFunctionForKey:
             return "Could not find a resolver function for this key"
-        case .noResolverFunctionsWithZeroParams:
-            return "None of the resolver functions could be called because they all depend on other functions"
         case .circularResolverDependency(let keys):
             return "This function could not be called because of a circular dependency: \(keys.arrowJoined)"
-        case .unresolvableDependencies:
-            return "Could not resolve the dependencies of this function. This could be due to a circular dependency chain."
         case .resolverFunctionCannotBeThrowingIfResultIsUsedLazily:
             return "This function can throw, but another function accesses this dependency using 'Lazy<...>'. This is not currently supported. If this is a capability you need, consider creating a GitHub issue."
         }

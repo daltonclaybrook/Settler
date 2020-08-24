@@ -23,9 +23,7 @@ public struct OrderedDefinitionBuilder {
         }
 
         guard !zeroParameters.isEmpty else {
-            let error = definition.adoptionFile
-                .mapConstant(DefinitionError.noResolverFunctionsWithZeroParams)
-            return .right([error])
+            fatalError("No resolver functions were found with zero parameters, but this should have resulted in `DefinitionError.circularResolverDependency`. If you're seeing this error, please consider creating a GitHub issue.")
         }
 
         let initialSection = FunctionSection(calls: zeroParameters.map(\.value))
@@ -92,15 +90,11 @@ public struct OrderedDefinitionBuilder {
                 return call.value
             }
 
-            if calls.isEmpty {
-                return .right(
-                    remainingCalls.map {
-                        $0.mapConstant(.unresolvableDependencies)
-                    }
-                )
-            } else {
+            if !calls.isEmpty {
                 let section = FunctionSection(calls: calls)
                 allSections.append(section)
+            } else {
+                fatalError("Unable to determine next function to call. This should have resulted in `DefinitionError.circularResolverDependency`")
             }
         }
         return .left(allSections)
