@@ -42,9 +42,4 @@ extension Dictionary where Key == String, Value == SourceKitRepresentable {
     var nameLength: Int64? {
         self[SwiftDocKey.nameLength.rawValue] as? Int64
     }
-
-    var accessibility: Accessibility? {
-        let accessibilityString = self[Accessibility.docKey] as? String
-        return accessibilityString.flatMap(Accessibility.init(rawValue:))
-    }
 }

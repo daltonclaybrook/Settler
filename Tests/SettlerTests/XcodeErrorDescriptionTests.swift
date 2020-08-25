@@ -26,20 +26,26 @@ final class XcodeErrorDescriptionTests: XCTestCase {
     }
 
     func testJoinedErrorStringsAreCorrect() {
-        let contents = "extension TestResolver {}"
-        let file1 = MockFile(path: "/path/one.swift", contents: contents)
-        let error1 = DefinitionError.cantFindDeclarationFile
-            .located(in: file1, offset: 0)
-        let file2 = MockFile(path: "/path/two.swift", contents: contents)
-        let error2 = DefinitionError
+        let errors: [DefinitionError] = [
+            .keyIsNotAnEnum,
+            .invalidTypeAlias,
+            .invalidFunction,
+            .unexpectedSyntaxElement,
+            .cantFindDeclarationFile,
+            .circularResolverDependency(keys: ["Key.Foo", "Key.Bar"]),
             .resolverFunctionCannotBeThrowingIfResultIsUsedLazily
-            .located(in: file2, offset: 0)
-        let result = [error1, error2].errorString
-        let expected = """
-        /path/one.swift:1:1: error: \(error1.value.description)
-        /path/two.swift:1:1: error: \(error2.value.description)
-        """
-        XCTAssertEqual(result, expected)
+        ]
+        let contents = "extension TestResolver {}"
+        let locatedErrors = errors.enumerated()
+            .map { (index, error) -> Located<DefinitionError> in
+                let file = MockFile(path: "/path/file\(index).swift", contents: contents)
+                return error.located(in: file, offset: 0)
+            }
+        let expectedErrorStrings = locatedErrors.map { located in
+            "\(located.filePath!):1:1: error: \(located.value.description)"
+        }
+        let expected = expectedErrorStrings.joined(separator: "\n")
+        XCTAssertEqual(locatedErrors.errorString, expected)
     }
 }
 
