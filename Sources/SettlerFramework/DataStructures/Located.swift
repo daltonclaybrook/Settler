@@ -1,11 +1,18 @@
 import SourceKittenFramework
 
+public protocol FileType {
+    var path: String? { get }
+    var stringView: StringView { get }
+}
+
+extension File: FileType {}
+
 /// Represents an object that has a corresponding location in a file,
 /// such as a function definition.
 @dynamicMemberLookup
 public struct Located<Value> {
     public let value: Value
-    public let file: File
+    public let file: FileType
     public let offset: Int64?
 
     public subscript<T>(dynamicMember keyPath: KeyPath<Value, T>) -> T {
@@ -14,7 +21,7 @@ public struct Located<Value> {
 }
 
 extension Located where Value == Void {
-    init(file: File, offset: Int64?) {
+    init(file: FileType, offset: Int64?) {
         self.init(value: (), file: file, offset: offset)
     }
 }
