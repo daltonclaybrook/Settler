@@ -53,7 +53,7 @@ extension DefinitionError: CustomStringConvertible {
 }
 
 extension DefinitionError {
-    func located(in file: File, offset: Int64? = nil) -> Located<DefinitionError> {
+    func located(in file: FileType, offset: Int64? = nil) -> Located<DefinitionError> {
         Located(value: self, file: file, offset: offset)
     }
 }

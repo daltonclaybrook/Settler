@@ -16,8 +16,8 @@ extension XcodeErrorDescription {
         let fileString = filePath ?? "<nopath>"
         let lineString = ":\(line)"
         let charString = ":\(character)"
-        let errorString = ": error"
-        let contentString = ": \(errorString)"
-        return [fileString, lineString, charString, errorString, contentString].joined()
+        let errorLabelString = ": error"
+        let errorContentString = ": \(errorString)"
+        return [fileString, lineString, charString, errorLabelString, errorContentString].joined()
     }
 }
