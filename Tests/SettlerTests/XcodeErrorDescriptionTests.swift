@@ -24,6 +24,23 @@ final class XcodeErrorDescriptionTests: XCTestCase {
         let expected = "<nopath>:2:5: error: \(locatedError.value.description)"
         XCTAssertEqual(locatedError.description, expected)
     }
+
+    func testJoinedErrorStringsAreCorrect() {
+        let contents = "extension TestResolver {}"
+        let file1 = MockFile(path: "/path/one.swift", contents: contents)
+        let error1 = DefinitionError.cantFindDeclarationFile
+            .located(in: file1, offset: 0)
+        let file2 = MockFile(path: "/path/two.swift", contents: contents)
+        let error2 = DefinitionError
+            .resolverFunctionCannotBeThrowingIfResultIsUsedLazily
+            .located(in: file2, offset: 0)
+        let result = [error1, error2].errorString
+        let expected = """
+        /path/one.swift:1:1: error: \(error1.value.description)
+        /path/two.swift:1:1: error: \(error2.value.description)
+        """
+        XCTAssertEqual(result, expected)
+    }
 }
 
 struct MockFile: FileType {
