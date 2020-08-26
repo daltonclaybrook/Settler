@@ -9,8 +9,9 @@ endif
 
 BINARIES_FOLDER=/usr/local/bin
 SETTLER_CLI_EXECUTABLE=$(shell swift build $(SWIFT_BUILD_FLAGS) --show-bin-path)/settler
+CURRENT_VERSION=0.1.0
 
-.PHONY: build clean test linuxmain xcode install uninstall
+.PHONY: build clean test linuxmain xcode install uninstall portable_zip
 
 default: build
 
@@ -35,3 +36,12 @@ install: build
 
 uninstall:
 	rm -f "$(BINARIES_FOLDER)/settler"
+
+portable_zip: build
+	rm -rf "build"
+	mkdir -p "build/bin"
+	mkdir -p "build/Sources"
+	cp -r Sources/Settler build/Sources/
+	cp LICENSE README.md build/
+	install "$(SETTLER_CLI_EXECUTABLE)" "build/bin"
+	(cd build; zip -r -X "Settler-$(CURRENT_VERSION).zip" .)

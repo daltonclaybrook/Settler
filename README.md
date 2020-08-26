@@ -36,6 +36,70 @@ See [Resolver.md](https://github.com/daltonclaybrook/Settler/blob/main/Resolver.
 
 See the [SettlerDemo directory](https://github.com/daltonclaybrook/Settler/tree/main/Sources/SettlerDemo) for a more detailed resolver example.
 
+## Installation
+
+### Using [CocoaPods](https://cocoapods.org/):
+
+Add the following line to your Podfile:
+
+```ruby
+pod 'Settler'
+```
+
+This will download the Settler binary and framework to your `Pods` folder during your next `pod install`. In Xcode, add a new Run Script Build Phase for your app _directly above the Compile Sources phase_ with the following contents:
+
+```bash
+${PODS_ROOT}/Settler/bin/settler resolve
+# Or customize with some options:
+# ${PODS_ROOT}/Settler/bin/settler resolve --sources MySources --indent tabs
+```
+
+### Using [Swift Package Manager](https://swift.org/package-manager/):
+
+In Xcode, you can add this package to your project by selecting File ➡ Swift Packages ➡ Add Package Dependency… Search for "Settler" and follow the prompts. You will need to select `Settler` and not `SettlerFramework`. (The latter is used internally by the Settler CLI)
+
+If you use a Package.swift file instead, add the following line inside of your package dependencies array:
+
+```swift
+.package(url: "https://github.com/daltonclaybrook/Settler", from: "0.1.0"),
+```
+
+Now add Settler as a dependency of any relevant targets:
+
+```swift
+.target(name: "MyApp", dependencies: ["Settler"]),
+```
+
+>Note: This will only install the framework dependency in your project. You will also need to install the Settler binary and add a Run Script Build Phase to your project. You can do this a number of ways such as using Mint, CocoaPods, or by compiling from source.
+
+### Using [Mint](https://github.com/yonaskolb/mint):
+
+Run the following command in Terminal:
+
+```bash
+$ mint install daltonclaybrook/Settler
+```
+
+In Xcode, add a new Run Script Build Phase for your app _directly above the Compile Sources phase_ with the following contents:
+
+```bash
+settler resolve
+# Or customize with some options:
+# settler resolve --sources MySources --indent tabs
+```
+
+>Note: This will only install the Settler binary. You will also need to add `Settler.framework` to your Xcode project. This can be done using CocoaPods, Swift Package Manager, or manually using artifacts downloaded from the [Releases](https://github.com/daltonclaybrook/Settler/releases) page.
+
+### Compiling from source:
+
+You can also install Settler by cloning this repo and running:
+
+```bash
+make install
+```
+
+>The same note applies about importing `Settler.framework` from the Mint section above.
+
 ## Compiler magic
 
 The power (and magic ✨) of Settler lies in its ability to parse your resolvers alongside the Swift compiler and report errors directly in Xcode as if it were part of the toolchain itself.
