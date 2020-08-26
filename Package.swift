@@ -9,7 +9,6 @@ let package = Package(
         .executable(name: "settler", targets: ["SettlerCLI"]),
         .library(name: "SettlerFramework", targets: ["SettlerFramework"]),
         .library(name: "Settler", targets: ["Settler"]),
-        .executable(name: "SettlerDemo", targets: ["SettlerDemo"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.2.1"),
