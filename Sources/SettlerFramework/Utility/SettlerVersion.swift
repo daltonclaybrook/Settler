@@ -1,7 +1,7 @@
 import Foundation
 
 struct SettlerVersion {
-    static let current = SettlerVersion(value: "0.1.0")
+    static let current = SettlerVersion(value: "0.1.1")
     let value: String
 }
 

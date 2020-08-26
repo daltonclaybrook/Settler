@@ -9,7 +9,7 @@ endif
 
 BINARIES_FOLDER=/usr/local/bin
 SETTLER_CLI_EXECUTABLE=$(shell swift build $(SWIFT_BUILD_FLAGS) --show-bin-path)/settler
-CURRENT_VERSION=0.1.0
+CURRENT_VERSION=0.1.1
 
 .PHONY: build clean test linuxmain xcode install uninstall portable_zip
 

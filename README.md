@@ -1,5 +1,8 @@
 ![Build Status](https://github.com/daltonclaybrook/Settler/workflows/Swift/badge.svg)
 [![codecov](https://codecov.io/gh/daltonclaybrook/Settler/branch/main/graph/badge.svg?cache_bust=1)](https://codecov.io/gh/daltonclaybrook/Settler)
+[![Pod Version](https://img.shields.io/cocoapods/v/Settler.svg?style=flat)](http://cocoapods.org/pods/Settler)
+[![License](https://img.shields.io/cocoapods/l/Sourcery.svg?style=flat)](http://cocoapods.org/pods/Sourcery)
+[![Pod Platform](https://img.shields.io/cocoapods/p/Settler.svg?style=flat)](http://cocoapods.org/pods/Settler)
 
 **Settler** is a Swift metaprogramming tool used to resolve complex dependency graphs in a way that encourages code separation and cleanliness while maintaining the safety guarantees of the compiler. If an object in your resolver cannot be resolved due to a missing or circular dependency, Settler will find it and bottom out compilation of your program.
 
@@ -61,7 +64,7 @@ In Xcode, you can add this package to your project by selecting File ➡ Swift P
 If you use a Package.swift file instead, add the following line inside of your package dependencies array:
 
 ```swift
-.package(url: "https://github.com/daltonclaybrook/Settler", from: "0.1.0"),
+.package(url: "https://github.com/daltonclaybrook/Settler", from: "0.1.1"),
 ```
 
 Now add Settler as a dependency of any relevant targets:

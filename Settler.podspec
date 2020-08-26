@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Settler'
-  s.version          = '0.1.0'
+  s.version          = '0.1.1'
   s.summary          = 'A utility for building complex, type-safe dependency graphs in Swift'
 
   s.description      = <<-DESC
@@ -18,8 +18,11 @@ Pod::Spec.new do |s|
   s.source_files = 'Sources/Settler/**/*'
   s.preserve_paths = '*'
 
-  s.ios.deployment_target = '9.0'
+  s.ios.deployment_target = '10.0'
   s.osx.deployment_target  = '10.12'
+  s.tvos.deployment_target = '10.0'
+  s.watchos.deployment_target = '3.0'
+
   s.swift_versions = ['5.1', '5.2']
 
 end
