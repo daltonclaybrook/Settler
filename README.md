@@ -88,7 +88,7 @@ settler resolve
 # settler resolve --sources MySources --indent tabs
 ```
 
->Note: This will only install the Settler binary. You will also need to import `Settler.framework` into your Xcode project. This can be installed using CocoaPods, Swift Package Manager, or manually using artifacts downloaded from the [Releases](https://github.com/daltonclaybrook/Settler/releases) page.
+>Note: This will only install the Settler binary. You will also need to add `Settler.framework` to your Xcode project. This can be done using CocoaPods, Swift Package Manager, or manually using artifacts downloaded from the [Releases](https://github.com/daltonclaybrook/Settler/releases) page.
 
 ### Compiling from source:
 
